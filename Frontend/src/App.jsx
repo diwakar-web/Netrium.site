@@ -1,121 +1,142 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import Navbar from './components/Navbar'
+import ExplorationRibbon from './components/ExplorationRibbon'
+import ActiveNodes from './components/ActiveNodes'
+import WhyNetrium from './components/WhyNetrium'
+import HeroCenter from './components/HeroCenter'
+import FacilitiesSection from './components/FacilitiesSection'
+import UserReviews from './components/UserReviews'
+import AboutNetrium from './components/AboutNetrium'
+import FacilityModal from './components/FacilityModal'
+import AuthModal from './components/AuthModal'
+import GradientWaves from './components/GradientWaves'
+import Footer from './components/Footer'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [selectedFacility, setSelectedFacility] = useState(null)
+  const [authModalMode, setAuthModalMode] = useState(null)
+
+  const handleOpenAuth = (mode) => {
+    setAuthModalMode(mode)
+  }
+
+  const handleCloseAuth = () => {
+    setAuthModalMode(null)
+  }
+
+  const handleOpenFacility = (facilityId) => {
+    setSelectedFacility(facilityId)
+  }
+
+  const handleCloseFacility = () => {
+    setSelectedFacility(null)
+  }
+
+  const scrollToFooter = () => {
+    const footerEl = document.getElementById('netrium-footer')
+    if (footerEl) {
+      footerEl.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="netrium-page-wrapper">
+      {/* React Bits Raymarched GradientWaves Background with Electric Neon Green, Pitch Black, Crisp White & Gray */}
+      <GradientWaves
+        horizonColor="#030712"
+        waveColor="#c6c6c6ff" //keep it like this only
+        crestColor="#ffffff"
+        speed={0.4}
+        amplitude={2.8}
+        waveScale={0.6}
+        waveRatio={0.9}
+        swell={30}
+        turbulence={18}
+        tilt={1.11}
+        zoom={1.0}
+        height={5.0}
+        fogDepth={22}
+        detail="medium"
+        brightness={1.2}
+        opacity={0.95}
+        mouseInteraction={true}
+        parallaxStrength={0.5}
+        grain={true}
+        grainIntensity={0.04}
+      />
 
-      <div className="ticks"></div>
+      {/* Main Hero Stage Container */}
+      <main className="netrium-hero-stage">
+        {/* TOP BAR: Logo Placeholder (Left) & ONLY 2 Buttons: Menu and Account (Right) */}
+        <Navbar
+          onOpenAuth={handleOpenAuth}
+          onOpenFacility={handleOpenFacility}
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* MOVING EXPLORATION RIBBON: Green Text on Pitch Black Background */}
+        <ExplorationRibbon />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium + Socials (Right) */}
+        <section className="hero-upper-row">
+          <div className="upper-left-col">
+            <ActiveNodes />
+          </div>
+
+          <div className="upper-right-col">
+            <WhyNetrium onLearnMore={() => handleOpenFacility('os-kernel')} />
+          </div>
+        </section>
+
+        {/* CENTERPIECE: Netrium Brand, Bold Highlight Badges & 2-3 word subheading */}
+        <section className="hero-center-row">
+          <HeroCenter onLaunchQuickDemo={handleOpenFacility} />
+        </section>
+
+        {/* BOTTOM GRID ROW: 5 Facilities (Left) & 3-Second User Reviews + Launch CTA (Right) */}
+        <section className="hero-bottom-row">
+          <div className="bottom-left-col">
+            <FacilitiesSection
+              onSelectFacility={handleOpenFacility}
+              activeFacilityId={selectedFacility}
+            />
+          </div>
+
+          <div className="bottom-right-col">
+            <UserReviews
+              onLaunchLab={() => handleOpenFacility('os-kernel')}
+            />
+            {/* Quick Scroll Indicator to Footer */}
+            <button className="btn-scroll-footer" onClick={scrollToFooter} aria-label="Scroll to footer">
+              <span>Explore Footer Architecture</span>
+              <span className="scroll-down-arrow">↓</span>
+            </button>
+          </div>
+        </section>
+      </main>
+
+      {/* INTRO SECTION: What Is NetRIUM? (Black Background) */}
+      <AboutNetrium onOpenFacility={handleOpenFacility} />
+
+      {/* FOOTER SECTION: Directly rendered below intro section */}
+      <Footer id="netrium-footer" onOpenFacility={handleOpenFacility} />
+
+      {/* Live Interactive Facility Simulation Modal */}
+      {selectedFacility && (
+        <FacilityModal
+          facilityId={selectedFacility}
+          onClose={handleCloseFacility}
+        />
+      )}
+
+      {/* Sign In / Sign Up Modal */}
+      {authModalMode && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={handleCloseAuth}
+        />
+      )}
+    </div>
   )
 }
 
