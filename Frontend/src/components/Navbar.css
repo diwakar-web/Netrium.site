@@ -1,0 +1,118 @@
+/* ==========================================================================
+   NETRIUM NAVBAR — Dynamic Scroll Header (Transparent Top, Black on Swipe Up, Hidden on Swipe Down)
+   ========================================================================== */
+
+.netrium-navbar-sticky-wrap {
+  width: 100%;
+  z-index: 100;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  box-sizing: border-box;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
+}
+
+/* State 1: At top of page / Starting Hero Section (Relative flow, transparent) */
+.netrium-navbar-sticky-wrap.at-top {
+  position: relative;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* State 2: Swiping UP -> Sticky Header with Pitch Black #000000 Background */
+.netrium-navbar-sticky-wrap.visible {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background: #000000;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translateY(0);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+}
+
+/* State 3: Swiping DOWN -> Hidden Offscreen */
+.netrium-navbar-sticky-wrap.hidden {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background: #000000;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translateY(-100%);
+}
+
+.netrium-navbar-inner {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.navbar-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+.navbar-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.staggered-menu-nav-container {
+  display: flex;
+  align-items: center;
+}
+
+.btn-nav-account {
+  background: #ffffff;
+  color: #030712;
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-nav-account:hover {
+  background: #00bf63;
+  color: #030712;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 191, 99, 0.4);
+}
+
+@media (max-width: 768px) {
+  .netrium-navbar-inner {
+    padding: 12px 20px;
+  }
+}

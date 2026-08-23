@@ -6,23 +6,6 @@ import './Footer.css'
 export default function Footer({ id, onOpenFacility }) {
   const renderFooterContent = (isSwapped = false) => (
     <div className={`footer-swap-container ${isSwapped ? 'banner-second' : 'banner-first'}`}>
-      {/* Top Banner Row inside Footer */}
-      <div className="footer-top-banner-row">
-        <span className={isSwapped ? "swap-badge-blue" : "swap-badge"}>
-          {isSwapped ? "Architecture Unlocked" : "Interactive Systems Lab"}
-        </span>
-        <h3 className={isSwapped ? "swap-title-blue" : "swap-title"}>
-          {isSwapped 
-            ? "Simulate OS Kernels, BGP Routing & Raft Nodes ⚡" 
-            : "Hover to reveal Netrium Core Architecture ⚡"}
-        </h3>
-        <span className={isSwapped ? "swap-sub-blue" : "swap-sub"}>
-          {isSwapped 
-            ? "Algorithm Visualizers • Real-Time State Synchronization" 
-            : "Real-Time Engine • Multi-Device Distributed Experimentation"}
-        </span>
-      </div>
-
       {/* Main Footer Grid Columns */}
       <div className="footer-main-grid">
         {/* Left Column: Brand Logo & Mission Statement */}
@@ -38,9 +21,6 @@ export default function Footer({ id, onOpenFacility }) {
           <p className={`footer-desc ${isSwapped ? 'blue-sub' : ''}`}>
             A real-time interactive laboratory for understanding Operating Systems, Computer Networks, and Distributed Systems through algorithm visualization and multi-device experimentation.
           </p>
-          <div className={`footer-status-pill ${isSwapped ? 'blue-status-pill' : ''}`}>
-            <span>● All Interactive Systems Operational</span>
-          </div>
         </div>
 
         {/* Middle Column: Home & Facilities Links */}
@@ -127,7 +107,7 @@ export default function Footer({ id, onOpenFacility }) {
         randomness={0}
         fade={true}
         trigger="hover"
-        style={{ width: '100vw', minHeight: '420px' }}
+        style={{ width: '100vw', minHeight: '270px' }}
       />
     </footer>
   )

@@ -16,20 +16,34 @@
   flex-direction: column;
 }
 
+/* Hero Stage Outer Wrapper - Fits 100% of Screen Height (100vh) */
+.hero-stage-outer-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
 /* Main Hero Stage - Center Container */
 .netrium-hero-stage {
   position: relative;
   z-index: 10;
   width: 100%;
   max-width: 1480px;
-  min-height: 100vh;
-  height: auto;
+  flex: 1;
   margin: 0 auto;
-  padding: 16px 40px 24px 40px;
+  padding: 6px 40px 14px 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -117,6 +131,8 @@
   width: 100%;
   margin-top: 12px;
   margin-bottom: 12px;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
 }
 
 /* Upper Left: Active Nodes / Users Stack (Border Removed, Divided by ||) */
@@ -172,7 +188,7 @@
   right: 0;
   width: 8px;
   height: 8px;
-  background: #00ff66;
+  background: #00bf63;
   border: 1.5px solid #030712;
   border-radius: 50%;
 }
@@ -195,7 +211,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #00ff66;
+  background: #00bf63;
   display: inline-block;
 }
 
@@ -223,18 +239,17 @@
 
 .why-netrium-card {
   width: 290px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  transition: transform var(--transition-fast);
 }
 
 .why-netrium-card:hover {
-  border-color: rgba(0, 255, 102, 0.5);
   transform: translateY(-2px);
 }
 
@@ -257,7 +272,7 @@
 .why-netrium-link {
   background: transparent;
   border: none;
-  color: #00ff66;
+  color: #00bf63;
   font-size: 11px;
   font-weight: 600;
   display: inline-flex;
@@ -295,10 +310,10 @@
 }
 
 .social-btn:hover {
-  background: rgba(0, 255, 102, 0.2);
-  border-color: rgba(0, 255, 102, 0.6);
+  background: rgba(0, 191, 99, 0.2);
+  border-color: rgba(0, 191, 99, 0.6);
   transform: scale(1.1);
-  color: #00ff66;
+  color: #00bf63;
 }
 
 /* ==========================================================================
@@ -320,7 +335,16 @@
   align-items: center;
 }
 
-/* Hero Center Logo Image (Medium Balanced Size) */
+/* Hero Center Logo Wrapper - Step 1: Appears after 1.0s ALONE */
+.hero-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: heroLogoEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
+  opacity: 0;
+  z-index: 20;
+}
+
 .hero-center-logo-img {
   height: clamp(110px, 14vw, 170px);
   width: auto;
@@ -328,7 +352,6 @@
   filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.75));
   margin-top: -8px;
   margin-bottom: -8px;
-  z-index: 20;
   transition: transform var(--transition-fast);
 }
 
@@ -336,7 +359,7 @@
   transform: scale(1.04);
 }
 
-/* Main Display Title */
+/* Main Display Title - Step 2: Appears after 1.75s */
 .hero-main-title {
   font-family: 'Stack Sans Notch', sans-serif;
   font-size: clamp(28px, 4vw, 56px);
@@ -350,6 +373,8 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
 }
 
 .title-row {
@@ -402,12 +427,12 @@
   letter-spacing: -1px;
 }
 
-/* Electric Neon Green Pill Badge */
+/* Electric Green #00bf63 Pill Badge */
 .pill-accent {
-  background: #00ff66;
-  background: linear-gradient(135deg, #00ff66 0%, #059669 100%);
-  border: 2px solid rgba(0, 255, 102, 0.85);
-  box-shadow: 0 8px 24px rgba(0, 255, 102, 0.35);
+  background: #00bf63;
+  background: linear-gradient(135deg, #00bf63 0%, #059669 100%);
+  border: 2px solid rgba(0, 191, 99, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 191, 99, 0.35);
 }
 
 .pill-accent .pill-text {
@@ -417,9 +442,11 @@
   letter-spacing: -1px;
 }
 
-/* Subheading */
+/* Subheading - Step 2: Appears after 1.75s */
 .hero-subheading-wrap {
   margin-top: 10px;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
 }
 
 .hero-subheading {
@@ -433,13 +460,15 @@
   margin: 0;
 }
 
-/* Interactive Playground Trigger */
+/* Interactive Playground Trigger - Step 2: Appears after 1.75s */
 .hero-interactive-trigger {
   margin-top: 14px;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
 }
 
 .btn-hero-explore {
-  background: rgba(15, 23, 42, 0.8);
+  background: #000000;
   border: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
   font-family: 'Stack Sans Notch', sans-serif;
@@ -457,14 +486,14 @@
 }
 
 .btn-hero-explore:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: #00ff66;
-  color: #00ff66;
+  background: #000000;
+  border-color: #00bf63;
+  color: #00bf63;
   transform: translateY(-2px);
 }
 
 .sparkle-icon {
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .terminal-icon {
@@ -482,6 +511,31 @@
   margin-top: auto;
   padding-top: 8px;
   padding-bottom: 12px;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  opacity: 0;
+}
+
+/* Staggered Keyframe Entrance Animations */
+@keyframes heroLogoEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes heroElementFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Bottom Left: 5 Facilities */
@@ -512,7 +566,7 @@
 }
 
 .facility-pill {
-  background: rgba(15, 23, 42, 0.8);
+  background: #000000;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -532,9 +586,9 @@
 
 .facility-pill:hover,
 .facility-pill.active {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: #00ff66;
-  color: #00ff66;
+  background: #000000;
+  border-color: #00bf63;
+  color: #00bf63;
   transform: translateY(-2px);
 }
 
@@ -542,7 +596,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #00ff66;
+  background: #00bf63;
 }
 
 .pill-arrow {
@@ -611,7 +665,7 @@
 
 .review-box {
   width: 100%;
-  background: rgba(15, 23, 42, 0.8);
+  background: #000000;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -635,7 +689,7 @@
 }
 
 .review-quote-icon {
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .review-author-name {
@@ -674,7 +728,7 @@
 .review-dot.active {
   width: 15px;
   border-radius: 4px;
-  background: #00ff66;
+  background: #00bf63;
 }
 
 .review-text {
@@ -695,8 +749,8 @@
 
 .review-timer-bar {
   height: 100%;
-  background: #00ff66;
-  animation: timerProgress 3s linear forwards;
+  background: #00bf63;
+  animation: timerProgress 5s linear forwards;
 }
 
 .review-timer-bar.paused {
@@ -731,15 +785,15 @@
 }
 
 .btn-scroll-footer:hover {
-  color: #00ff66;
-  border-color: #00ff66;
-  background: rgba(0, 255, 102, 0.1);
+  color: #00bf63;
+  border-color: #00bf63;
+  background: rgba(0, 191, 99, 0.1);
   transform: translateY(2px);
 }
 
 .scroll-down-arrow {
   font-weight: bold;
-  color: #00ff66;
+  color: #00bf63;
 }
 
 /* ==========================================================================
@@ -797,7 +851,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .modal-close-btn {
@@ -853,9 +907,9 @@
 }
 
 .modal-tab.active {
-  color: #00ff66;
-  background: rgba(0, 255, 102, 0.12);
-  border: 1px solid rgba(0, 255, 102, 0.3);
+  color: #00bf63;
+  background: rgba(0, 191, 99, 0.12);
+  border: 1px solid rgba(0, 191, 99, 0.3);
 }
 
 .modal-body {
@@ -915,10 +969,10 @@
 }
 
 .algo-btn.active {
-  background: #00ff66;
+  background: #00bf63;
   color: #030712;
   font-weight: 700;
-  border-color: #00ff66;
+  border-color: #00bf63;
 }
 
 .sim-action-buttons {
@@ -928,7 +982,7 @@
 }
 
 .sim-play-btn {
-  background: #00ff66;
+  background: #00bf63;
   color: #030712;
   border: none;
   font-size: 12px;
@@ -1006,7 +1060,7 @@
 }
 
 .status-running {
-  color: #00ff66;
+  color: #00bf63;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -1092,8 +1146,8 @@
 }
 
 .topo-node.active-hop {
-  border-color: #00ff66;
-  background: rgba(0, 255, 102, 0.12);
+  border-color: #00bf63;
+  background: rgba(0, 191, 99, 0.12);
 }
 
 .node-icon-box {
@@ -1109,8 +1163,8 @@
 
 .node-role-badge {
   font-size: 9px;
-  color: #00ff66;
-  background: rgba(0, 255, 102, 0.15);
+  color: #00bf63;
+  background: rgba(0, 191, 99, 0.15);
   padding: 2px 5px;
   border-radius: 4px;
   display: inline-block;
@@ -1122,7 +1176,7 @@
 }
 
 .topo-link.link-active {
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .packet-terminal {
@@ -1158,7 +1212,7 @@
 }
 
 .term-time {
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .term-text {
@@ -1178,8 +1232,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #00ff66;
-  box-shadow: 0 0 6px #00ff66;
+  background: #00bf63;
+  box-shadow: 0 0 6px #00bf63;
 }
 
 .raft-nodes-grid {
@@ -1199,8 +1253,8 @@
 }
 
 .raft-card.is-leader {
-  border-color: #00ff66;
-  background: rgba(0, 255, 102, 0.08);
+  border-color: #00bf63;
+  background: rgba(0, 191, 99, 0.08);
 }
 
 .raft-card-top {
@@ -1223,13 +1277,13 @@
 }
 
 .role-leader {
-  background: #00ff66;
+  background: #00bf63;
   color: #030712;
 }
 
 .role-follower {
-  background: rgba(0, 255, 102, 0.2);
-  color: #00ff66;
+  background: rgba(0, 191, 99, 0.2);
+  color: #00bf63;
 }
 
 .raft-meta {
@@ -1258,7 +1312,7 @@
 }
 
 .log-item code {
-  color: #00ff66;
+  color: #00bf63;
 }
 
 /* Mesh & Virtual Memory Styles */
@@ -1288,8 +1342,8 @@
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: rgba(0, 255, 102, 0.15);
-  color: #00ff66;
+  background: rgba(0, 191, 99, 0.15);
+  color: #00bf63;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1316,8 +1370,8 @@
 .latency-badge {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #00ff66;
-  background: rgba(0, 255, 102, 0.1);
+  color: #00bf63;
+  background: rgba(0, 191, 99, 0.1);
   padding: 3px 7px;
   border-radius: 4px;
 }
@@ -1327,7 +1381,7 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #00ff66;
+  color: #00bf63;
   font-weight: 600;
 }
 
@@ -1359,9 +1413,9 @@
 }
 
 .page-access-btn:hover {
-  background: #00ff66;
+  background: #00bf63;
   color: #030712;
-  border-color: #00ff66;
+  border-color: #00bf63;
 }
 
 .mem-frames-grid {
@@ -1372,7 +1426,7 @@
 
 .frame-card {
   background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(0, 255, 102, 0.3);
+  border: 1px solid rgba(0, 191, 99, 0.3);
   border-radius: 8px;
   padding: 12px;
   text-align: center;
@@ -1388,13 +1442,13 @@
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 800;
-  color: #00ff66;
+  color: #00bf63;
   margin-bottom: 3px;
 }
 
 .frame-validity {
   font-size: 9px;
-  color: #00ff66;
+  color: #00bf63;
 }
 
 .mem-status-message {
@@ -1404,7 +1458,7 @@
   padding: 10px 14px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #00ff66;
+  color: #00bf63;
 }
 
 /* ==========================================================================
@@ -1495,8 +1549,8 @@
 }
 
 .input-group input:focus {
-  border-color: #00ff66;
-  box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.2);
+  border-color: #00bf63;
+  box-shadow: 0 0 0 3px rgba(0, 191, 99, 0.2);
 }
 
 .auth-submit-btn {
@@ -1574,7 +1628,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #00ff66;
+  background: #00bf63;
   color: #030712;
   font-size: 22px;
   font-weight: 800;

@@ -1,0 +1,28 @@
+/* ==========================================================================
+   NETRIUM SCRAMBLED TEXT — Gentle, Slow & Eye-Comfortable Styling
+   ========================================================================== */
+
+.scrambled-text-block {
+  display: inline-block;
+}
+
+.scrambled-text-block p {
+  margin: 0;
+  display: inline-block;
+}
+
+.scrambled-text-block .char {
+  display: inline-block;
+  will-change: transform;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.scrambled-text-block .char.scrambling {
+  color: #00bf63;
+  opacity: 0.85;
+}
+
+.scrambled-text-block .char-space {
+  display: inline-block;
+  width: 0.25em;
+}

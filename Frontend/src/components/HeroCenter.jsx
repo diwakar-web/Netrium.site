@@ -4,14 +4,13 @@ import darkLogo from '../assets/DarkLogo.png'
 export default function HeroCenter({ onLaunchQuickDemo }) {
   return (
     <div className="hero-center-container">
-      {/* Main Center Typography */}
-      <h1 className="hero-main-title">
-        {/* Line 1: Dark Logo Image from Assets */}
-        <span className="title-row title-row-1">
-          <img src={darkLogo} alt="Netrium Logo" className="hero-center-logo-img" />
-        </span>
+      {/* Step 1: Center Brand Logo Image (Appears after 1.0s alone) */}
+      <div className="hero-logo-wrapper">
+        <img src={darkLogo} alt="Netrium Logo" className="hero-center-logo-img" />
+      </div>
 
-        {/* Line 2: Experience Complex Concepts In Real Time.Turn Complex Concepts Into Interactive Systems. */}
+      {/* Step 2: Main Title Badges (Appears after 1.75s with other elements) */}
+      <h1 className="hero-main-title">
         <span className="title-row title-row-2 hero-sub-single-line">
           <span className="text-normal">Turn</span>
           <span className="pill-badge pill-white pill-sm">

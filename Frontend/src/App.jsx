@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import GradientWaves from './components/GradientWaves'
 import Navbar from './components/Navbar'
 import ExplorationRibbon from './components/ExplorationRibbon'
 import ActiveNodes from './components/ActiveNodes'
@@ -7,44 +8,37 @@ import HeroCenter from './components/HeroCenter'
 import FacilitiesSection from './components/FacilitiesSection'
 import UserReviews from './components/UserReviews'
 import AboutNetrium from './components/AboutNetrium'
+import WhatWeOffer from './components/WhatWeOffer'
+import Footer from './components/Footer'
 import FacilityModal from './components/FacilityModal'
 import AuthModal from './components/AuthModal'
-import GradientWaves from './components/GradientWaves'
-import Footer from './components/Footer'
 import './App.css'
 
-function App() {
-  const [selectedFacility, setSelectedFacility] = useState(null)
-  const [authModalMode, setAuthModalMode] = useState(null)
-
-  const handleOpenAuth = (mode) => {
-    setAuthModalMode(mode)
-  }
-
-  const handleCloseAuth = () => {
-    setAuthModalMode(null)
-  }
+export default function App() {
+  const [activeFacility, setActiveFacility] = useState(null)
+  const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' })
 
   const handleOpenFacility = (facilityId) => {
-    setSelectedFacility(facilityId)
+    setActiveFacility(facilityId)
   }
 
   const handleCloseFacility = () => {
-    setSelectedFacility(null)
+    setActiveFacility(null)
   }
 
-  const scrollToFooter = () => {
-    const footerEl = document.getElementById('netrium-footer')
-    if (footerEl) {
-      footerEl.scrollIntoView({ behavior: 'smooth' })
-    }
+  const handleOpenAuth = (mode = 'login') => {
+    setAuthModal({ isOpen: true, mode })
+  }
+
+  const handleCloseAuth = () => {
+    setAuthModal({ isOpen: false, mode: 'login' })
   }
 
   return (
     <div className="netrium-page-wrapper">
-      {/* React Bits Raymarched GradientWaves Background with Electric Neon Green, Pitch Black, Crisp White & Gray */}
+      {/* React Bits Raymarched GradientWaves Background */}
       <GradientWaves
-        horizonColor="#030712"
+        horizonColor="#000000ff"
         waveColor="#c6c6c6ff" //keep it like this only
         crestColor="#ffffff"
         speed={0.4}
@@ -66,78 +60,70 @@ function App() {
         grainIntensity={0.04}
       />
 
-      {/* Main Hero Stage Container */}
-      <main className="netrium-hero-stage">
-        {/* TOP BAR: Logo Placeholder (Left) & ONLY 2 Buttons: Menu and Account (Right) */}
+      {/* EXACT 100VH HERO OUTER CONTAINER */}
+      <div className="hero-stage-outer-wrapper">
         <Navbar
           onOpenAuth={handleOpenAuth}
           onOpenFacility={handleOpenFacility}
         />
 
-        {/* MOVING EXPLORATION RIBBON: Green Text on Pitch Black Background */}
         <ExplorationRibbon />
 
-        {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium + Socials (Right) */}
-        <section className="hero-upper-row">
-          <div className="upper-left-col">
-            <ActiveNodes />
-          </div>
+        <main className="netrium-hero-stage">
+          {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium (Right) */}
+          <section className="hero-upper-row">
+            <div className="upper-left-col">
+              <ActiveNodes />
+            </div>
 
-          <div className="upper-right-col">
-            <WhyNetrium onLearnMore={() => handleOpenFacility('os-kernel')} />
-          </div>
-        </section>
+            <div className="upper-right-col">
+              <WhyNetrium onLearnMore={() => handleOpenFacility('os-kernel')} />
+            </div>
+          </section>
 
-        {/* CENTERPIECE: Netrium Brand, Bold Highlight Badges & 2-3 word subheading */}
-        <section className="hero-center-row">
-          <HeroCenter onLaunchQuickDemo={handleOpenFacility} />
-        </section>
+          {/* CENTERPIECE: Netrium Brand & Display Badges */}
+          <section className="hero-center-row">
+            <HeroCenter onLaunchQuickDemo={handleOpenFacility} />
+          </section>
 
-        {/* BOTTOM GRID ROW: 5 Facilities (Left) & 3-Second User Reviews + Launch CTA (Right) */}
-        <section className="hero-bottom-row">
-          <div className="bottom-left-col">
-            <FacilitiesSection
-              onSelectFacility={handleOpenFacility}
-              activeFacilityId={selectedFacility}
-            />
-          </div>
+          {/* BOTTOM GRID ROW: 5 Facilities (Left) & User Reviews (Right) */}
+          <section className="hero-bottom-row">
+            <div className="bottom-left-col">
+              <FacilitiesSection onSelectFacility={handleOpenFacility} activeFacilityId={activeFacility} />
+            </div>
 
-          <div className="bottom-right-col">
-            <UserReviews
-              onLaunchLab={() => handleOpenFacility('os-kernel')}
-            />
-            {/* Quick Scroll Indicator to Footer */}
-            <button className="btn-scroll-footer" onClick={scrollToFooter} aria-label="Scroll to footer">
-              <span>Explore Footer Architecture</span>
-              <span className="scroll-down-arrow">↓</span>
-            </button>
-          </div>
-        </section>
-      </main>
+            <div className="bottom-right-col">
+              <UserReviews onExploreFooter={() => handleOpenFacility('packet-trace')} />
+            </div>
+          </section>
+        </main>
+      </div>
 
-      {/* INTRO SECTION: What Is NetRIUM? (Black Background) */}
-      <AboutNetrium onOpenFacility={handleOpenFacility} />
+      {/* INTRO SECTION: "What Is NetRIUM?" */}
+      <AboutNetrium />
 
-      {/* FOOTER SECTION: Directly rendered below intro section */}
-      <Footer id="netrium-footer" onOpenFacility={handleOpenFacility} />
+      {/* OFFERINGS SECTION: "What We Offer" 12 Square Cards Grid */}
+      <WhatWeOffer onOpenFacility={handleOpenFacility} />
 
-      {/* Live Interactive Facility Simulation Modal */}
-      {selectedFacility && (
+      {/* COMPACT FOOTER */}
+      <Footer onOpenFacility={handleOpenFacility} />
+
+      {/* INTERACTIVE SIMULATION MODAL */}
+      {activeFacility && (
         <FacilityModal
-          facilityId={selectedFacility}
+          facilityId={activeFacility}
           onClose={handleCloseFacility}
         />
       )}
 
-      {/* Sign In / Sign Up Modal */}
-      {authModalMode && (
+      {/* AUTHENTICATION MODAL */}
+      {authModal.isOpen && (
         <AuthModal
-          initialMode={authModalMode}
+          mode={authModal.mode}
           onClose={handleCloseAuth}
+          onSwitchMode={(mode) => setAuthModal({ isOpen: true, mode })}
         />
       )}
     </div>
   )
 }
-
-export default App

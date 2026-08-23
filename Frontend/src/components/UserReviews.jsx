@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { ArrowUpRight, MessageSquareQuote } from 'lucide-react'
+import { MessageSquareQuote } from 'lucide-react'
 
-export default function UserReviews({ onLaunchLab }) {
+export default function UserReviews() {
   const reviews = [
     {
       firstName: 'Aarav',
@@ -34,13 +34,13 @@ export default function UserReviews({ onLaunchLab }) {
   const [isPaused, setIsPaused] = useState(false)
   const [progressKey, setProgressKey] = useState(0)
 
-  // Auto-switch review every 3 seconds (3000ms)
+  // Auto-switch review every 5 seconds (5000ms)
   useEffect(() => {
     if (isPaused) return
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length)
       setProgressKey((k) => k + 1)
-    }, 3000)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [isPaused, reviews.length])
@@ -53,19 +53,7 @@ export default function UserReviews({ onLaunchLab }) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Right-aligned Consultation / Lab CTA Button like in reference */}
-      <div className="reviews-cta-row">
-        <button 
-          className="btn-launch-lab"
-          onClick={onLaunchLab}
-          aria-label="Launch Netrium Laboratory"
-        >
-          <span>Launch Laboratory</span>
-          <ArrowUpRight size={16} className="btn-arrow-icon" />
-        </button>
-      </div>
-
-      {/* Review Box: First Name + Review in quotation marks, changing every 3s */}
+      {/* Review Box: First Name + Review in quotation marks, changing every 5s */}
       <div className="review-box" key={currentIndex}>
         <div className="review-header">
           <div className="review-author-info">
@@ -93,7 +81,7 @@ export default function UserReviews({ onLaunchLab }) {
           &ldquo;{currentReview.review}&rdquo;
         </p>
 
-        {/* 3-Second Countdown Progress Bar */}
+        {/* 5-Second Countdown Progress Bar */}
         <div className="review-timer-bar-track">
           <div 
             key={progressKey} 
