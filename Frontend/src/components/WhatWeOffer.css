@@ -253,12 +253,12 @@
   transform: translate(2px, -2px);
 }
 
-/* Row Footer Button: Green "Build & Simulate" (Centered, Longer & Sharp 0 Border Radius) */
+/* Row Footer Button: Green "Build & Simulate" (Longer, Centered & Sharp 0 Border Radius) */
 .row-footer-btn-wrap {
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .btn-lets-understand {
@@ -266,19 +266,19 @@
   color: #030712;
   border: none;
   font-family: 'Stack Sans Notch', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
-  padding: 12px 48px;
-  min-width: 320px;
-  max-width: 460px;
+  padding: 14px 64px;
+  min-width: clamp(340px, 60vw, 780px);
+  max-width: 860px;
   width: 100%;
   border-radius: 0 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   box-shadow: none !important;
   transition: background var(--transition-fast), transform var(--transition-fast);
 }

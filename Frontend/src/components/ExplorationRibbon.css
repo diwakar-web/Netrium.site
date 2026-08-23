@@ -1,11 +1,15 @@
 /* ==========================================================================
-   NETRIUM EXPLORATION RIBBON — 1-Line Marquee Ticker (Pure Black #000000)
+   NETRIUM EXPLORATION RIBBON — 100% Screen Width Marquee Ticker (1.75s Delay)
    ========================================================================== */
 
 .exploration-ribbon-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
   height: 36px;
   background: #000000;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -17,7 +21,7 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 

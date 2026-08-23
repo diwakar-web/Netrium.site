@@ -1,10 +1,11 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { gsap } from 'gsap';
 import './StaggeredMenu.css';
 
 export const StaggeredMenu = ({
   position = 'right',
-  colors = ['#0f172a', '#1e293b', '#030712'],
+  colors = ['#00bf63', '#022c22', '#000000'],
   items = [],
   socialItems = [],
   displaySocials = true,
@@ -12,8 +13,8 @@ export const StaggeredMenu = ({
   className,
   logoUrl = '',
   menuButtonColor = '#fff',
-  openMenuButtonColor = '#38bdf8',
-  accentColor = '#38bdf8',
+  openMenuButtonColor = '#00bf63',
+  accentColor = '#00bf63',
   changeMenuColorOnOpen = true,
   isFixed = false,
   closeOnClickAway = true,
@@ -32,6 +33,7 @@ export const StaggeredMenu = ({
   const textInnerRef = useRef(null);
   const textWrapRef = useRef(null);
   const [textLines, setTextLines] = useState(['Menu', 'Close']);
+  const [mounted, setMounted] = useState(false);
 
   const openTlRef = useRef(null);
   const closeTweenRef = useRef(null);
@@ -42,7 +44,12 @@ export const StaggeredMenu = ({
   const busyRef = useRef(false);
   const itemEntranceTweenRef = useRef(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useLayoutEffect(() => {
+    if (!mounted) return;
     const ctx = gsap.context(() => {
       const panel = panelRef.current;
       const preContainer = preLayersRef.current;
@@ -59,9 +66,9 @@ export const StaggeredMenu = ({
       preLayerElsRef.current = preLayers;
 
       const offscreen = position === 'left' ? -100 : 100;
-      gsap.set([panel, ...preLayers], { xPercent: offscreen, opacity: 1 });
+      gsap.set([panel, ...preLayers], { xPercent: offscreen, opacity: 1, visibility: 'hidden' });
       if (preContainer) {
-        gsap.set(preContainer, { xPercent: 0, opacity: 1 });
+        gsap.set(preContainer, { xPercent: 0, opacity: 1, visibility: 'hidden' });
       }
       gsap.set(plusH, { transformOrigin: '50% 50%', rotate: 0 });
       gsap.set(plusV, { transformOrigin: '50% 50%', rotate: 90 });
@@ -70,12 +77,18 @@ export const StaggeredMenu = ({
       if (toggleBtnRef.current) gsap.set(toggleBtnRef.current, { color: menuButtonColor });
     });
     return () => ctx.revert();
-  }, [menuButtonColor, position]);
+  }, [menuButtonColor, position, mounted]);
 
   const buildOpenTimeline = useCallback(() => {
     const panel = panelRef.current;
-    const layers = preLayerElsRef.current;
+    const preContainer = preLayersRef.current;
     if (!panel) return null;
+
+    let layers = preLayerElsRef.current;
+    if (preContainer && (!layers || !layers.length)) {
+      layers = Array.from(preContainer.querySelectorAll('.sm-prelayer'));
+      preLayerElsRef.current = layers;
+    }
 
     openTlRef.current?.kill();
     if (closeTweenRef.current) {
@@ -107,6 +120,8 @@ export const StaggeredMenu = ({
     }
 
     const tl = gsap.timeline({ paused: true });
+
+    gsap.set([panel, ...layers, preLayersRef.current], { visibility: 'visible' });
 
     layerStates.forEach((ls, i) => {
       tl.fromTo(ls.el, { xPercent: ls.start }, { xPercent: 0, duration: 0.5, ease: 'power4.out' }, i * 0.07);
@@ -204,8 +219,13 @@ export const StaggeredMenu = ({
     itemEntranceTweenRef.current?.kill();
 
     const panel = panelRef.current;
-    const layers = preLayerElsRef.current;
+    const preContainer = preLayersRef.current;
     if (!panel) return;
+
+    let layers = preLayerElsRef.current;
+    if (preContainer && (!layers || !layers.length)) {
+      layers = Array.from(preContainer.querySelectorAll('.sm-prelayer'));
+    }
 
     const all = [...layers, panel];
     closeTweenRef.current?.kill();
@@ -228,6 +248,7 @@ export const StaggeredMenu = ({
         const socialLinks = Array.from(panel.querySelectorAll('.sm-socials-link'));
         if (socialTitle) gsap.set(socialTitle, { opacity: 0 });
         if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
+        gsap.set([panel, ...layers, preContainer], { visibility: 'hidden' });
         busyRef.current = false;
       }
     });
@@ -353,22 +374,11 @@ export const StaggeredMenu = ({
 
   return (
     <div
-      className={(className ? className + ' ' : '') + 'staggered-menu-wrapper' + (isFixed ? ' fixed-wrapper' : '')}
+      className={(className ? className + ' ' : '') + 'staggered-menu-wrapper'}
       style={accentColor ? { ['--sm-accent']: accentColor } : undefined}
       data-position={position}
       data-open={open || undefined}
     >
-      <div ref={preLayersRef} className="sm-prelayers" aria-hidden="true">
-        {(() => {
-          const raw = colors && colors.length ? colors.slice(0, 4) : ['#0f172a', '#1e293b'];
-          let arr = [...raw];
-          if (arr.length >= 3) {
-            const mid = Math.floor(arr.length / 2);
-            arr.splice(mid, 1);
-          }
-          return arr.map((c, i) => <div key={i} className="sm-prelayer" style={{ background: c }} />);
-        })()}
-      </div>
       <header className="staggered-menu-header" aria-label="Main navigation header">
         <div className="sm-logo" aria-label="Logo">
           {logoUrl ? (
@@ -407,53 +417,77 @@ export const StaggeredMenu = ({
         </button>
       </header>
 
-      <aside id="staggered-menu-panel" ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>
-        <div className="sm-panel-inner">
-          <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
-            {items && items.length ? (
-              items.map((it, idx) => (
-                <li className="sm-panel-itemWrap" key={it.label + idx}>
-                  <a 
-                    className="sm-panel-item" 
-                    href={it.link || '#'} 
-                    aria-label={it.ariaLabel} 
-                    data-index={idx + 1}
-                    onClick={(e) => {
-                      if (it.facilityId) {
-                        e.preventDefault();
-                        onSelectItem && onSelectItem(it.facilityId);
-                        closeMenu();
-                      }
-                    }}
-                  >
-                    <span className="sm-panel-itemLabel">{it.label}</span>
-                  </a>
-                </li>
-              ))
-            ) : (
-              <li className="sm-panel-itemWrap" aria-hidden="true">
-                <span className="sm-panel-item">
-                  <span className="sm-panel-itemLabel">No items</span>
-                </span>
-              </li>
-            )}
-          </ul>
-          {displaySocials && socialItems && socialItems.length > 0 && (
-            <div className="sm-socials" aria-label="Social links">
-              <h3 className="sm-socials-title">Socials</h3>
-              <ul className="sm-socials-list" role="list">
-                {socialItems.map((s, i) => (
-                  <li key={s.label + i} className="sm-socials-item">
-                    <a href={s.link} target="_blank" rel="noopener noreferrer" className="sm-socials-link">
-                      {s.label}
-                    </a>
+      {/* React Portal: Mounts panel directly on document.body to stick 100% flush to window viewport right edge */}
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <>
+          <div ref={preLayersRef} className="sm-prelayers" aria-hidden="true">
+            {(() => {
+              const raw = colors && colors.length ? colors.slice(0, 4) : ['#00bf63', '#022c22', '#000000'];
+              let arr = [...raw];
+              if (arr.length >= 3) {
+                const mid = Math.floor(arr.length / 2);
+                arr.splice(mid, 1);
+              }
+              return arr.map((c, i) => <div key={i} className="sm-prelayer" style={{ background: c }} />);
+            })()}
+          </div>
+
+          <aside 
+            id="staggered-menu-panel" 
+            ref={panelRef} 
+            className="staggered-menu-panel" 
+            aria-hidden={!open}
+            style={{ pointerEvents: open ? 'auto' : 'none' }}
+          >
+            <div className="sm-panel-inner">
+              <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
+                {items && items.length ? (
+                  items.map((it, idx) => (
+                    <li className="sm-panel-itemWrap" key={it.label + idx}>
+                      <a 
+                        className="sm-panel-item" 
+                        href={it.link || '#'} 
+                        aria-label={it.ariaLabel} 
+                        data-index={idx + 1}
+                        onClick={(e) => {
+                          if (it.facilityId) {
+                            e.preventDefault();
+                            onSelectItem && onSelectItem(it.facilityId);
+                            closeMenu();
+                          }
+                        }}
+                      >
+                        <span className="sm-panel-itemLabel">{it.label}</span>
+                      </a>
+                    </li>
+                  ))
+                ) : (
+                  <li className="sm-panel-itemWrap" aria-hidden="true">
+                    <span className="sm-panel-item">
+                      <span className="sm-panel-itemLabel">No items</span>
+                    </span>
                   </li>
-                ))}
+                )}
               </ul>
+              {displaySocials && socialItems && socialItems.length > 0 && (
+                <div className="sm-socials" aria-label="Social links">
+                  <h3 className="sm-socials-title">Socials</h3>
+                  <ul className="sm-socials-list" role="list">
+                    {socialItems.map((s, i) => (
+                      <li key={s.label + i} className="sm-socials-item">
+                        <a href={s.link} target="_blank" rel="noopener noreferrer" className="sm-socials-link">
+                          {s.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </aside>
+          </aside>
+        </>,
+        document.body
+      )}
     </div>
   );
 };

@@ -60,44 +60,44 @@ export default function App() {
         grainIntensity={0.04}
       />
 
-      {/* EXACT 100VH HERO OUTER CONTAINER */}
-      <div className="hero-stage-outer-wrapper">
+      {/* HERO STAGE CONTAINER */}
+      <main className="netrium-hero-stage">
+        {/* TOP BAR: Logo Placeholder (Left) & ONLY 2 Buttons: Menu and Account (Right) */}
         <Navbar
           onOpenAuth={handleOpenAuth}
           onOpenFacility={handleOpenFacility}
         />
 
+        {/* MOVING EXPLORATION RIBBON: Green Text on Pitch Black Background */}
         <ExplorationRibbon />
 
-        <main className="netrium-hero-stage">
-          {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium (Right) */}
-          <section className="hero-upper-row">
-            <div className="upper-left-col">
-              <ActiveNodes />
-            </div>
+        {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium (Right) */}
+        <section className="hero-upper-row">
+          <div className="upper-left-col">
+            <ActiveNodes />
+          </div>
 
-            <div className="upper-right-col">
-              <WhyNetrium onLearnMore={() => handleOpenFacility('os-kernel')} />
-            </div>
-          </section>
+          <div className="upper-right-col">
+            <WhyNetrium onLearnMore={() => handleOpenFacility('os-kernel')} />
+          </div>
+        </section>
 
-          {/* CENTERPIECE: Netrium Brand & Display Badges */}
-          <section className="hero-center-row">
-            <HeroCenter onLaunchQuickDemo={handleOpenFacility} />
-          </section>
+        {/* CENTERPIECE: Netrium Brand & Display Badges */}
+        <section className="hero-center-row">
+          <HeroCenter onLaunchQuickDemo={handleOpenFacility} />
+        </section>
 
-          {/* BOTTOM GRID ROW: 5 Facilities (Left) & User Reviews (Right) */}
-          <section className="hero-bottom-row">
-            <div className="bottom-left-col">
-              <FacilitiesSection onSelectFacility={handleOpenFacility} activeFacilityId={activeFacility} />
-            </div>
+        {/* BOTTOM GRID ROW: 5 Facilities (Left) & User Reviews (Right) */}
+        <section className="hero-bottom-row">
+          <div className="bottom-left-col">
+            <FacilitiesSection onSelectFacility={handleOpenFacility} activeFacilityId={activeFacility} />
+          </div>
 
-            <div className="bottom-right-col">
-              <UserReviews onExploreFooter={() => handleOpenFacility('packet-trace')} />
-            </div>
-          </section>
-        </main>
-      </div>
+          <div className="bottom-right-col">
+            <UserReviews onExploreFooter={() => handleOpenFacility('packet-trace')} />
+          </div>
+        </section>
+      </main>
 
       {/* INTRO SECTION: "What Is NetRIUM?" */}
       <AboutNetrium />

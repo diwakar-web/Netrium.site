@@ -16,34 +16,20 @@
   flex-direction: column;
 }
 
-/* Hero Stage Outer Wrapper - Fits 100% of Screen Height (100vh) */
-.hero-stage-outer-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  min-height: 100vh;
-  max-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
 /* Main Hero Stage - Center Container */
 .netrium-hero-stage {
   position: relative;
   z-index: 10;
   width: 100%;
   max-width: 1480px;
-  flex: 1;
+  min-height: 100vh;
+  height: auto;
   margin: 0 auto;
-  padding: 6px 40px 14px 40px;
+  padding: 16px 40px 24px 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -131,7 +117,7 @@
   width: 100%;
   margin-top: 12px;
   margin-bottom: 12px;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 
@@ -373,7 +359,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 
@@ -442,10 +428,10 @@
   letter-spacing: -1px;
 }
 
-/* Subheading - Step 2: Appears after 1.75s */
+/* Subheading - Step 2: Appears after 2.0s */
 .hero-subheading-wrap {
   margin-top: 10px;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 
@@ -460,10 +446,10 @@
   margin: 0;
 }
 
-/* Interactive Playground Trigger - Step 2: Appears after 1.75s */
+/* Interactive Playground Trigger - Step 2: Appears after 2.0s */
 .hero-interactive-trigger {
   margin-top: 14px;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 
@@ -511,7 +497,7 @@
   margin-top: auto;
   padding-top: 8px;
   padding-bottom: 12px;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.75s forwards;
+  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
   opacity: 0;
 }
 
