@@ -9,7 +9,7 @@
   width: 100%;
   background-color: #000000;
   margin-top: 48px;
-  padding: 60px 0 70px 0;
+  padding: 50px 0 50px 0;
   box-sizing: border-box;
   overflow: hidden;
   z-index: 10;
@@ -24,7 +24,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 28px;
 }
 
 /* ==========================================================================
@@ -62,7 +62,7 @@
   line-height: 1.6;
   color: #94a3b8;
   font-weight: 500;
-  margin: 0 0 24px 0;
+  margin: 0 0 22px 0;
   text-align: center;
   max-width: 720px;
 }
@@ -253,7 +253,7 @@
 .reviews-marquee-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   overflow: hidden;
@@ -285,10 +285,12 @@
   background: linear-gradient(-90deg, #000000 0%, transparent 100%);
 }
 
+/* Layer with headroom padding so hover transforms never clip at top */
 .reviews-layer {
   display: flex;
   overflow: hidden;
   width: 100%;
+  padding: 8px 0;
 }
 
 .marquee-track {
@@ -330,13 +332,12 @@
 }
 
 /* ==========================================================================
-   ELEVATED REVIEW CARD COLOR & STYLING (Sleek Dark Slate-Glass)
+   BLACK/GRAY CARDS WITH ALTERNATING GREEN & WHITE BORDERS
    ========================================================================== */
 
 .review-card {
   width: 315px;
-  background: linear-gradient(155deg, #0d131f 0%, #060911 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d1117;
   border-radius: 11px;
   padding: 14px 16px;
   display: flex;
@@ -344,22 +345,38 @@
   justify-content: space-between;
   gap: 10px;
   box-sizing: border-box;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   flex-shrink: 0;
 }
 
-.review-card:hover {
+/* Alternating Green Border (Odd Cards) */
+.marquee-track .review-card:nth-child(odd) {
+  border: 1px solid rgba(0, 191, 99, 0.38);
+}
+
+.marquee-track .review-card:nth-child(odd):hover {
   transform: translateY(-3px);
-  border-color: rgba(0, 191, 99, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(0, 191, 99, 0.12);
+  border-color: #00bf63;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 191, 99, 0.28);
+}
+
+/* Alternating White/Silver Border (Even Cards) */
+.marquee-track .review-card:nth-child(even) {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.marquee-track .review-card:nth-child(even):hover {
+  transform: translateY(-3px);
+  border-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 16px rgba(255, 255, 255, 0.25);
 }
 
 .review-card.new-badge-glow {
-  border-color: #00bf63;
-  box-shadow: 0 0 16px rgba(0, 191, 99, 0.25);
+  border-color: #00bf63 !important;
+  box-shadow: 0 0 16px rgba(0, 191, 99, 0.3) !important;
 }
 
 .review-card-top {
@@ -505,7 +522,7 @@
 }
 
 /* ==========================================================================
-   4. MOTIVATING CLOSING STATEMENT (Single Sentence, No Dot)
+   4. MOTIVATING CLOSING STATEMENT (Single Line, Compact Padding)
    ========================================================================== */
 
 .community-motivating-wrap {
@@ -513,20 +530,22 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin: 12px auto 0 auto;
-  max-width: 900px;
-  padding: 16px 20px;
+  margin: 4px auto 0 auto;
+  padding: 8px 16px;
+  width: 100%;
+  max-width: 1100px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .motivating-single-line {
   font-family: 'Stack Sans Notch', sans-serif;
-  font-size: clamp(15px, 1.6vw, 20px);
+  font-size: clamp(13px, 1.25vw, 16.5px);
   font-weight: 800;
-  line-height: 1.35;
+  line-height: 1.2;
   color: #ffffff;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   margin: 0;
+  white-space: nowrap;
   text-align: center;
 }
 
@@ -764,8 +783,8 @@
 
 @media (max-width: 600px) {
   .community-reviews-section {
-    margin-top: 32px;
-    padding: 40px 0 60px 0;
+    margin-top: 24px;
+    padding: 30px 0 40px 0;
   }
 
   .community-action-buttons {
@@ -796,5 +815,9 @@
 
   .review-modal-card {
     padding: 20px 16px;
+  }
+
+  .motivating-single-line {
+    white-space: normal;
   }
 }
