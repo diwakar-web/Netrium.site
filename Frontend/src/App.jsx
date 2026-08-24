@@ -10,6 +10,7 @@ import UserReviews from './components/UserReviews'
 import AboutNetrium from './components/AboutNetrium'
 import WhatWeOffer from './components/WhatWeOffer'
 import OurVision from './components/OurVision'
+import CommunityReviews from './components/CommunityReviews'
 import Footer from './components/Footer'
 import FacilityModal from './components/FacilityModal'
 import AuthModal from './components/AuthModal'
@@ -108,6 +109,12 @@ export default function App() {
 
       {/* OUR VISION SECTION: Scroll-expanding Interactive Reality Comparison */}
       <OurVision onOpenFacility={handleOpenFacility} />
+
+      {/* COMMUNITY REVIEWS & LOGIN PERSUASION SECTION */}
+      <CommunityReviews 
+        onOpenAuth={handleOpenAuth} 
+        onOpenFacility={handleOpenFacility} 
+      />
 
       {/* COMPACT FOOTER */}
       <Footer onOpenFacility={handleOpenFacility} />
