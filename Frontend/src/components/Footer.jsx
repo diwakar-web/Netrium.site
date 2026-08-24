@@ -12,10 +12,10 @@ export default function Footer({ id, onOpenFacility }) {
         <div className="footer-brand-col">
           <a href="#" className="footer-logo-link" aria-label="Netrium Home">
             {/* Default: DarkLogo, Swapped/Hover: LightLogo */}
-            <img 
-              src={isSwapped ? lightLogo : darkLogo} 
-              alt="Netrium Logo" 
-              className="footer-logo-img" 
+            <img
+              src={isSwapped ? lightLogo : darkLogo}
+              alt="Netrium Logo"
+              className="footer-logo-img"
             />
           </a>
           <p className={`footer-desc ${isSwapped ? 'blue-sub' : ''}`}>
@@ -85,7 +85,7 @@ export default function Footer({ id, onOpenFacility }) {
 
       {/* Bottom Bar & Copyright Line */}
       <div className={`footer-bottom-bar ${isSwapped ? 'blue-border' : ''}`}>
-        <span className={isSwapped ? 'blue-sub' : ''}>© 2026 Netrium.site — All rights reserved.</span>
+        <span className={isSwapped ? 'blue-sub' : ''}>© 2026 Netrium.site ,  All rights reserved.</span>
         <span className={`footer-credits ${isSwapped ? 'blue-sub' : ''}`}>Powered by React + OGL + GSAP + React Bits</span>
       </div>
     </div>

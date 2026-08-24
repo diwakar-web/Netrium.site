@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NETRIUM — 12 Square Cards Grid Grouped by Category Rows (Pure Black Background)
+   NETRIUM ,  12 Square Cards Grid Grouped by Category Rows (Pure Black Background)
    ========================================================================== */
 
 .what-we-offer-section {
@@ -8,8 +8,8 @@
   width: 100%;
   max-width: 100%;
   background: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 60px 0 80px 0;
+  border-bottom: none;
+  padding: 60px 0 10px 0;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -299,17 +299,21 @@
   .what-we-offer-section {
     padding: 40px 0 60px 0;
   }
+
   .row-cards-grid {
     grid-template-columns: 1fr;
   }
+
   .row-header-wrap {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
+
   .row-category-line {
     width: 100%;
   }
+
   .btn-lets-understand {
     min-width: 100%;
   }

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NETRIUM EXPLORATION RIBBON — 100% Screen Width Marquee Ticker (1.75s Delay)
+   NETRIUM EXPLORATION RIBBON ,  100% Screen Width Marquee Ticker (1.75s Delay)
    ========================================================================== */
 
 .exploration-ribbon-wrapper {
@@ -69,6 +69,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }

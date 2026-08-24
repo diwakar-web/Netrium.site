@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NETRIUM INTRO SECTION — 2 Column Layout with MagnetLines (Pure Black #000000)
+   NETRIUM INTRO SECTION ,  2 Column Layout with MagnetLines (Pure Black #000000)
    ========================================================================== */
 
 .about-netrium-section {
@@ -94,6 +94,7 @@
     grid-template-columns: 1fr;
     gap: 32px;
   }
+
   .about-right-col {
     justify-content: center;
     padding-right: 0;

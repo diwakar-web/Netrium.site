@@ -1,0 +1,300 @@
+/* ==========================================================================
+   OUR VISION SECTION & OVERLAY STYLING
+   Theme: Vibrant Netrium Green Stage with Black & Blue Typography
+   Typography: "Stack Sans Notch", sans-serif (Matching Entire Website)
+   Layout: Perfectly Sized Cards without Overflow (Fitting 100vh Viewport)
+   ========================================================================== */
+
+.our-vision-section {
+  position: relative;
+  width: 100%;
+  background-color: #000000;
+  z-index: 10;
+}
+
+.vision-scroll-expand {
+  width: 100%;
+}
+
+/* Full Viewport Fitted Overlay Container */
+.vision-overlay-content {
+  width: 100%;
+  max-width: 1380px;
+  height: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+  padding: 1rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: 'Stack Sans Notch', sans-serif;
+  pointer-events: none;
+}
+
+/* Header Section */
+.vision-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 1200px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.vision-main-title {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(1.6rem, 2.3vw, 2.25rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.2rem 0;
+  color: #000000;
+}
+
+.vision-blue-text {
+  color: #1d4ed8;
+  text-shadow: 0 2px 10px rgba(29, 78, 216, 0.25);
+}
+
+/* Single-line Subtitle */
+.vision-subtitle {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(0.8rem, 0.95vw, 0.92rem);
+  line-height: 1.35;
+  color: #0f172a;
+  font-weight: 700;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  white-space: nowrap;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+/* 6 Problem Cards Grid (3x2 Matrix) */
+.vision-problems-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  flex-shrink: 0;
+  margin: 0.35rem 0;
+  pointer-events: auto;
+}
+
+/* Sized Card Styling */
+.vision-card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(29, 78, 216, 0.18);
+  border-radius: 12px;
+  padding: 1.05rem 1.2rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 145px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease,
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.28s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.vision-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb, #38bdf8);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* ==========================================================================
+   HOVER INTERACTION: Enlarge hovered card & Diminish all others
+   ========================================================================== */
+
+/* When hovering over grid, diminish all cards */
+.vision-problems-grid:hover .vision-card {
+  opacity: 0.42;
+  transform: scale(0.96);
+  filter: blur(0.25px) grayscale(15%);
+}
+
+/* The specifically hovered card enlarges, illuminates, and stands out */
+.vision-problems-grid .vision-card:hover {
+  opacity: 1 !important;
+  transform: scale(1.05) translateY(-3px) !important;
+  filter: none !important;
+  border-color: #1d4ed8;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2), 0 0 26px rgba(29, 78, 216, 0.32);
+  z-index: 20;
+}
+
+.vision-problems-grid .vision-card:hover::before {
+  opacity: 1;
+}
+
+/* Card Content Styling */
+.vision-card-stat {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #1d4ed8;
+  line-height: 1.15;
+}
+
+.vision-card-title {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(0.82rem, 1vw, 0.95rem);
+  font-weight: 800;
+  color: #000000;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.vision-card-desc {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(0.7rem, 0.85vw, 0.8rem);
+  line-height: 1.42;
+  color: #1e293b;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Concluding Statement: Solution Banner */
+.vision-solution-banner {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1.5px solid #1d4ed8;
+  border-radius: 11px;
+  padding: 0.8rem 1.4rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), 0 0 18px rgba(29, 78, 216, 0.12);
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.solution-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.solution-text-col {
+  flex: 1;
+}
+
+.solution-title {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(0.95rem, 1.3vw, 1.22rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #000000;
+  margin: 0 0 0.18rem 0;
+}
+
+.solution-title-blue {
+  color: #1d4ed8;
+}
+
+.solution-body {
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: clamp(0.7rem, 0.82vw, 0.78rem);
+  line-height: 1.42;
+  color: #1e293b;
+  font-weight: 600;
+  margin: 0;
+  max-width: 860px;
+}
+
+.solution-actions-col {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.vision-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 7px;
+  font-family: 'Stack Sans Notch', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.vision-launch-btn.primary-black {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.vision-launch-btn.primary-black:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(29, 78, 216, 0.3);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .vision-subtitle {
+    white-space: normal;
+  }
+
+  .vision-problems-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .solution-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .solution-actions-col {
+    width: 100%;
+  }
+
+  .vision-launch-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 680px) {
+  .vision-problems-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .vision-overlay-content {
+    padding: 0.5rem;
+  }
+}

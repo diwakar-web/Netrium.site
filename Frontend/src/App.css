@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NETRIUM — Real-Time Interactive Systems & Network Laboratory
+   NETRIUM ,  Real-Time Interactive Systems & Network Laboratory
    Typography: "Stack Sans Notch", sans-serif
    Compact, Perfectly Scaled Layout fitting 100vh Viewport
    ========================================================================== */
@@ -7,11 +7,10 @@
 /* Main Fullpage Wrapper - Transparent so GradientWaves WebGL canvas is 100% visible */
 .netrium-page-wrapper {
   position: relative;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   background: transparent;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -507,6 +506,7 @@
     opacity: 0;
     transform: scale(0.82) translateY(18px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -518,6 +518,7 @@
     opacity: 0;
     transform: translateY(22px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -747,6 +748,7 @@
   0% {
     width: 0%;
   }
+
   100% {
     width: 100%;
   }
@@ -1633,19 +1635,23 @@
     min-height: 100vh;
     padding: 20px 24px 28px 24px;
   }
+
   .hero-bottom-row {
     flex-direction: column;
     align-items: stretch;
     gap: 20px;
   }
+
   .bottom-left-col,
   .bottom-right-col {
     max-width: 100%;
     width: 100%;
   }
+
   .reviews-container {
     align-items: stretch;
   }
+
   .reviews-cta-row {
     justify-content: flex-start;
   }
@@ -1657,15 +1663,19 @@
     gap: 16px;
     margin-top: 24px;
   }
+
   .why-netrium-wrapper {
     width: 100%;
   }
+
   .why-netrium-card {
     width: 100%;
   }
+
   .title-row {
     gap: 8px;
   }
+
   .pill-badge {
     padding: 0 16px;
   }
@@ -1675,10 +1685,12 @@
   .hero-main-title {
     font-size: 30px;
   }
+
   .pill-badge {
     height: 40px;
     padding: 0 14px;
   }
+
   .processes-status-row,
   .raft-nodes-grid,
   .mem-frames-grid {

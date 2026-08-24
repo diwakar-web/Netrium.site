@@ -9,6 +9,7 @@ import FacilitiesSection from './components/FacilitiesSection'
 import UserReviews from './components/UserReviews'
 import AboutNetrium from './components/AboutNetrium'
 import WhatWeOffer from './components/WhatWeOffer'
+import OurVision from './components/OurVision'
 import Footer from './components/Footer'
 import FacilityModal from './components/FacilityModal'
 import AuthModal from './components/AuthModal'
@@ -104,6 +105,9 @@ export default function App() {
 
       {/* OFFERINGS SECTION: "What We Offer" 12 Square Cards Grid */}
       <WhatWeOffer onOpenFacility={handleOpenFacility} />
+
+      {/* OUR VISION SECTION: Scroll-expanding Interactive Reality Comparison */}
+      <OurVision onOpenFacility={handleOpenFacility} />
 
       {/* COMPACT FOOTER */}
       <Footer onOpenFacility={handleOpenFacility} />

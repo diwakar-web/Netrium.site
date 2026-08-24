@@ -11,7 +11,7 @@ export default function ExplorationRibbon() {
   ]
 
   return (
-    <div className="exploration-ribbon-wrapper" title="Interactive Exploration Banner — Pause on Hover">
+    <div className="exploration-ribbon-wrapper" title="Interactive Exploration Banner ,  Pause on Hover">
       <div className="ribbon-track">
         {[...tickerItems, ...tickerItems].map((text, idx) => (
           <div className="ribbon-item" key={idx}>
