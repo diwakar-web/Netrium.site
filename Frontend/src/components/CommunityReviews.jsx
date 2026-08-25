@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { 
   Star, 
   CheckCircle2, 
@@ -8,11 +8,25 @@ import {
   ArrowRight, 
   ThumbsUp, 
   X,
-  Send
+  Send,
+  Sparkles,
+  Layers,
+  Cpu,
+  Globe,
+  GitFork,
+  PenLine
 } from 'lucide-react'
 import './CommunityReviews.css'
 
+const TOPIC_CATEGORIES = [
+  { id: 'all', label: 'All Reviews', icon: Layers },
+  { id: 'os', label: 'Operating Systems', icon: Cpu },
+  { id: 'networks', label: 'Computer Networks', icon: Globe },
+  { id: 'distributed', label: 'Distributed Systems', icon: GitFork },
+]
+
 export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
+  const [selectedTopic, setSelectedTopic] = useState('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userReviewsList, setUserReviewsList] = useState([])
   const [newReview, setNewReview] = useState({
@@ -21,13 +35,40 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     gender: 'male',
     rating: 5,
     tag: 'Operating Systems',
+    category: 'os',
     comment: ''
   })
   const [hoverRating, setHoverRating] = useState(0)
   const [likedReviews, setLikedReviews] = useState({})
   const [submittedToast, setSubmittedToast] = useState(false)
 
-  // 2 Curated Layers of Early-Tester Reviews (6 per layer)
+  // Freeze background scrolling when review modal/box is open
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isModalOpen])
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen])
+
+  // Curated High-Signal Reviews
   const initialLayer1 = [
     {
       id: 'l1-1',
@@ -35,9 +76,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'CS Undergrad, IIT Bombay',
       rating: 5,
+      category: 'os',
       tag: 'OS Kernel & Memory',
-      comment: 'Testing TLB cache misses and multi-level page tables in real time made memory virtualization click.',
-      likes: 14,
+      comment: 'Testing TLB cache misses and multi-level page tables in real time made memory virtualization finally click for me.',
+      likes: 24,
       verified: true
     },
     {
@@ -46,9 +88,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'female',
       role: 'Distributed Systems Student',
       rating: 5,
+      category: 'distributed',
       tag: 'Raft Consensus',
-      comment: 'Live split votes and log replication across partitioned nodes are so much clearer than static paper slides.',
-      likes: 19,
+      comment: 'Live split votes and log replication across partitioned nodes are so much clearer than static textbook slides.',
+      likes: 31,
       verified: true
     },
     {
@@ -57,9 +100,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Junior DevOps Engineer',
       rating: 5,
+      category: 'networks',
       tag: 'TCP & BGP Routing',
-      comment: 'The 3-way handshake packet trace in browser without any setup was super helpful for understanding congestion.',
-      likes: 11,
+      comment: 'The 3-way handshake packet trace directly in the browser without any setup was super helpful for understanding congestion.',
+      likes: 18,
       verified: true
     },
     {
@@ -68,9 +112,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'female',
       role: 'CS Major @ UC Berkeley',
       rating: 5,
+      category: 'os',
       tag: 'Concurrency & Locks',
-      comment: 'Seeing deadlocks on live thread execution timelines makes concurrent programming much less intimidating.',
-      likes: 16,
+      comment: 'Seeing race conditions and deadlocks on live thread execution timelines makes concurrent programming much less intimidating.',
+      likes: 29,
       verified: true
     },
     {
@@ -79,9 +124,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Software Developer',
       rating: 5,
+      category: 'distributed',
       tag: 'Distributed Systems',
       comment: 'No Docker setup needed — opened the URL and experimented with quorum elections directly in the browser.',
-      likes: 22,
+      likes: 37,
       verified: true
     },
     {
@@ -90,9 +136,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'female',
       role: 'Graduate Student, CMU',
       rating: 5,
+      category: 'os',
       tag: 'Memory Virtualization',
       comment: 'Step-through execution for page fault swaps is a fantastic visual learning aid for low-level systems.',
-      likes: 12,
+      likes: 22,
       verified: true
     }
   ]
@@ -104,9 +151,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Computer Engineering Student',
       rating: 5,
+      category: 'networks',
       tag: 'Computer Networks',
-      comment: 'Dropping packets and seeing retransmission timers trigger live is exactly what dry textbooks lack.',
-      likes: 15,
+      comment: 'Dropping packets and seeing retransmission timers trigger live is exactly what dry network textbooks lack.',
+      likes: 26,
       verified: true
     },
     {
@@ -115,9 +163,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'female',
       role: 'CS Senior @ Waterloo',
       rating: 5,
+      category: 'distributed',
       tag: 'Interview Prep',
       comment: 'Used this to review distributed consensus edge cases before systems interviews. Visual models are invaluable.',
-      likes: 27,
+      likes: 45,
       verified: true
     },
     {
@@ -126,9 +175,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Systems Enthusiast, Tokyo',
       rating: 5,
+      category: 'os',
       tag: 'CPU Scheduling',
-      comment: 'Interactive Round Robin vs MLFQ comparisons make scheduling latency trade-offs very intuitive.',
-      likes: 9,
+      comment: 'Interactive Round Robin vs MLFQ comparisons make scheduling latency trade-offs immediately intuitive.',
+      likes: 19,
       verified: true
     },
     {
@@ -137,9 +187,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'female',
       role: 'Junior Backend Developer',
       rating: 5,
+      category: 'os',
       tag: 'Data Structures',
       comment: 'Live tree rebalancing and lock-free concurrent queues. Loving the visual-first approach to complex CS topics.',
-      likes: 18,
+      likes: 33,
       verified: true
     },
     {
@@ -148,9 +199,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Networks Lab Student',
       rating: 5,
+      category: 'networks',
       tag: 'BGP Routing',
       comment: 'Visualizing routing loops and convergence on topology graphs helped me ace my computer networks exam.',
-      likes: 13,
+      likes: 21,
       verified: true
     },
     {
@@ -159,9 +211,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       role: 'Open Source Contributor',
       rating: 5,
+      category: 'os',
       tag: 'OS Kernel & IPC',
       comment: 'Clean, fast, and accessible browser simulation. Can’t wait for more facilities to be added!',
-      likes: 21,
+      likes: 38,
       verified: true
     }
   ]
@@ -177,12 +230,21 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     e.preventDefault()
     if (!newReview.name.trim() || !newReview.comment.trim()) return
 
+    const categoryMap = {
+      'Operating Systems': 'os',
+      'Distributed Systems': 'distributed',
+      'Computer Networks': 'networks',
+      'Data Structures': 'os',
+      'General Platform': 'os'
+    }
+
     const created = {
       id: `user-${Date.now()}`,
       name: newReview.name.trim(),
       role: newReview.role.trim() || 'Early Tester',
       gender: newReview.gender || 'male',
       rating: newReview.rating,
+      category: categoryMap[newReview.tag] || 'os',
       tag: newReview.tag,
       comment: newReview.comment.trim(),
       likes: 1,
@@ -197,6 +259,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       gender: 'male',
       rating: 5,
       tag: 'Operating Systems',
+      category: 'os',
       comment: ''
     })
     setIsModalOpen(false)
@@ -204,145 +267,214 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     setTimeout(() => setSubmittedToast(false), 4000)
   }
 
-  // Layer 1 combines user-submitted reviews with initial reviews
-  const activeLayer1 = [...userReviewsList, ...initialLayer1]
+  // Combined and filtered review lists
+  const allReviews = useMemo(() => {
+    return [...userReviewsList, ...initialLayer1, ...initialLayer2]
+  }, [userReviewsList])
+
+  const filteredLayer1 = useMemo(() => {
+    const list = [...userReviewsList, ...initialLayer1]
+    if (selectedTopic === 'all') return list
+    return list.filter(r => r.category === selectedTopic)
+  }, [userReviewsList, selectedTopic])
+
+  const filteredLayer2 = useMemo(() => {
+    if (selectedTopic === 'all') return initialLayer2
+    return initialLayer2.filter(r => r.category === selectedTopic)
+  }, [selectedTopic])
+
+  const isFilteredMode = selectedTopic !== 'all'
+  const filteredAll = useMemo(() => {
+    if (selectedTopic === 'all') return []
+    return allReviews.filter(r => r.category === selectedTopic)
+  }, [allReviews, selectedTopic])
 
   return (
     <section className="community-reviews-section" id="community-reviews">
       <div className="community-reviews-container">
         
         {/* =================================================================
-            1. AUTHENTIC EARLY ADOPTER LOGIN CTA (Seamless Black Background)
+            1. UNIFIED, DE-CLUTTERED HERO & SOCIAL PROOF HEADER
             ================================================================= */}
-        <div className="community-hero-wrap">
-          <h2 className="community-main-title">
-            Step Inside the <span className="community-green-text">Interactive Laboratory</span>
+        <div className="community-unified-hero">
+          {/* Subtle Top Badge */}
+          <div className="community-pill-badge">
+            <span className="pill-dot"></span>
+            <span>EARLY TESTER FEEDBACK & ACCESS</span>
+          </div>
+
+          <h2 className="community-hero-title">
+            Step Inside the <span className="text-neon-gradient">Interactive Laboratory</span>
           </h2>
 
-          <p className="community-subtitle">
-            NetRIUM brings abstract concepts from Operating Systems, Computer Networks, and Distributed Systems to life through live visual simulation. Sign in to save your custom node topologies, track your experimentation progress, and help shape our early features.
+          <p className="community-hero-desc">
+            Explore live, interactive simulations for Operating Systems, Networks, and Distributed Systems. Save custom topologies, trace execution paths, and share your early feedback.
           </p>
 
-          <div className="community-action-buttons">
+          {/* Login / Sign Up Action Buttons */}
+          <div className="community-hero-actions">
             <button 
-              className="btn-community-signin"
+              className="btn-lab-primary"
               onClick={() => onOpenAuth && onOpenAuth('login')}
             >
               <LogIn size={15} />
               <span>Sign In to Laboratory</span>
-              <ArrowRight size={14} className="btn-arrow-icon" />
+              <ArrowRight size={14} className="btn-icon-arrow" />
             </button>
 
             <button 
-              className="btn-community-signup"
+              className="btn-lab-secondary"
               onClick={() => onOpenAuth && onOpenAuth('signup')}
             >
               <UserPlus size={15} />
               <span>Create Free Account</span>
             </button>
           </div>
-        </div>
 
-        {/* =================================================================
-            2. REVIEWS HEADER WITH "WRITE YOUR OWN REVIEW" OPTION
-            ================================================================= */}
-        <div className="reviews-section-header">
-          <div className="reviews-header-left">
-            <div className="reviews-pill-label">
-              <CheckCircle2 size={12} className="check-icon" />
-              <span>EARLY TESTER VOICES</span>
-            </div>
-            <h3 className="reviews-title">
-              What Early Testers Say About <span className="text-gradient-green">NetRIUM</span>
-            </h3>
-            <p className="reviews-desc">
-              Feedback from students, engineers, and educators experimenting with our early interactive simulations.
-            </p>
-          </div>
-
-          <div className="reviews-header-right">
+          {/* DEDICATED WRITE REVIEW BOX BENEATH LOGIN BUTTONS */}
+          <div className="community-write-review-trigger-box">
             <button 
-              className="btn-write-review"
+              className="btn-open-review-box"
               onClick={() => setIsModalOpen(true)}
+              aria-label="Open review writing box"
             >
-              <MessageSquarePlus size={14} />
-              <span>Write Your Own Review</span>
+              <div className="write-box-left">
+                <span className="write-box-icon-wrap">
+                  <PenLine size={14} />
+                </span>
+                <span className="write-box-text">
+                  Tested our simulations? <strong>Share your feedback & review</strong>
+                </span>
+              </div>
+              <span className="write-box-action-pill">
+                <span>Write Review</span>
+                <ArrowRight size={12} />
+              </span>
             </button>
           </div>
         </div>
 
-        {/* Success Notification Toast */}
+        {/* =================================================================
+            2. TOPIC FILTER BAR (Clean Pill Toggles)
+            ================================================================= */}
+        <div className="community-topic-filter-bar">
+          <div className="topic-filter-pills">
+            {TOPIC_CATEGORIES.map(cat => {
+              const IconComp = cat.icon
+              const isActive = selectedTopic === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  className={`topic-pill-btn ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedTopic(cat.id)}
+                >
+                  <IconComp size={13} />
+                  <span>{cat.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Success Toast */}
         {submittedToast && (
           <div className="review-toast-success">
             <CheckCircle2 size={15} className="toast-icon" />
-            <span>Thank you! Your feedback has been posted to the live feed.</span>
+            <span>Thank you! Your feedback has been published to the live feed.</span>
           </div>
         )}
 
         {/* =================================================================
-            3. TWO-LAYER SLOW MARQUEE CAROUSEL WITH EDGE FADING
+            3. ELEGANT REVIEWS PRESENTATION (Smooth Marquee or Clean Grid)
             ================================================================= */}
-        <div className="reviews-marquee-wrapper">
-          
-          {/* LAYER 1: Moving Left (Slow & Smooth) */}
-          <div className="reviews-layer marquee-left">
-            <div className="marquee-track">
-              {activeLayer1.concat(activeLayer1).map((rev, idx) => (
-                <ReviewCard 
-                  key={`${rev.id}-${idx}`} 
-                  review={rev} 
-                  isLiked={!!likedReviews[rev.id]} 
-                  onLike={() => handleLike(rev.id)} 
-                />
-              ))}
+        {!isFilteredMode ? (
+          <div className="reviews-marquee-wrapper">
+            {/* Top Row: Flowing Left */}
+            <div className="reviews-layer marquee-left">
+              <div className="marquee-track">
+                {filteredLayer1.concat(filteredLayer1).map((rev, idx) => (
+                  <CleanReviewCard 
+                    key={`${rev.id}-${idx}`} 
+                    review={rev} 
+                    isLiked={!!likedReviews[rev.id]} 
+                    onLike={() => handleLike(rev.id)} 
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Row: Flowing Right */}
+            <div className="reviews-layer marquee-right">
+              <div className="marquee-track">
+                {filteredLayer2.concat(filteredLayer2).map((rev, idx) => (
+                  <CleanReviewCard 
+                    key={`${rev.id}-${idx}`} 
+                    review={rev} 
+                    isLiked={!!likedReviews[rev.id]} 
+                    onLike={() => handleLike(rev.id)} 
+                  />
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* LAYER 2: Moving Right (Slow & Smooth) */}
-          <div className="reviews-layer marquee-right">
-            <div className="marquee-track">
-              {initialLayer2.concat(initialLayer2).map((rev, idx) => (
-                <ReviewCard 
-                  key={`${rev.id}-${idx}`} 
-                  review={rev} 
-                  isLiked={!!likedReviews[rev.id]} 
-                  onLike={() => handleLike(rev.id)} 
-                />
-              ))}
-            </div>
+        ) : (
+          <div className="reviews-filtered-grid">
+            {filteredAll.map((rev) => (
+              <CleanReviewCard 
+                key={rev.id} 
+                review={rev} 
+                isLiked={!!likedReviews[rev.id]} 
+                onLike={() => handleLike(rev.id)} 
+              />
+            ))}
           </div>
-
-        </div>
+        )}
 
         {/* =================================================================
-            4. MOTIVATING CLOSING STATEMENT (Before Footer)
+            4. REFINED PHILOSOPHY STATEMENT
             ================================================================= */}
-        <div className="community-motivating-wrap">
-          <p className="motivating-single-line">
-            “Great engineers aren’t made by memorizing theory, they’re forged by <span className="motivating-highlight">observing systems in real time</span>.”
-          </p>
+        <div className="community-quote-banner">
+          <div className="quote-banner-inner">
+            <p className="quote-text">
+              “Great engineers aren’t made by memorizing theory, they’re forged by <span className="quote-green-highlight">observing systems in real time</span>.”
+            </p>
+          </div>
         </div>
 
       </div>
 
       {/* =================================================================
-          5. INTERACTIVE "WRITE REVIEW" MODAL
+          5. INTERACTIVE "WRITE REVIEW" BOX (MODAL OVERLAY)
+             - Locks background scrolling when open
+             - Disappears when clicking backdrop outside or 'X' button
           ================================================================= */}
       {isModalOpen && (
-        <div className="review-modal-backdrop" onClick={() => setIsModalOpen(false)}>
-          <div className="review-modal-card" onClick={e => e.stopPropagation()}>
+        <div 
+          className="review-modal-backdrop" 
+          onClick={() => setIsModalOpen(false)}
+          onWheel={e => e.stopPropagation()}
+        >
+          <div 
+            className="review-modal-card" 
+            onClick={e => e.stopPropagation()}
+          >
             <button 
               className="review-modal-close" 
               onClick={() => setIsModalOpen(false)}
-              aria-label="Close modal"
+              aria-label="Close review modal"
+              title="Close (Esc)"
             >
               <X size={18} />
             </button>
 
             <div className="review-modal-header">
-              <h3 className="modal-title">Share Your Early Feedback</h3>
+              <div className="modal-badge">
+                <Sparkles size={13} />
+                <span>COMMUNITY VOICES</span>
+              </div>
+              <h3 className="modal-title">Share Your Experience</h3>
               <p className="modal-subtitle">
-                Help us improve NetRIUM by sharing your thoughts on our interactive simulations.
+                Your feedback directly influences how we expand NetRIUM's interactive simulation facilities.
               </p>
             </div>
 
@@ -364,7 +496,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                     </button>
                   ))}
                   <span className="rating-text">
-                    {(hoverRating || newReview.rating) === 5 ? '5/5 Stars (Great)' : `${hoverRating || newReview.rating}/5 Stars`}
+                    {(hoverRating || newReview.rating) === 5 ? '5/5 Stars (Excellent)' : `${hoverRating || newReview.rating}/5 Stars`}
                   </span>
                 </div>
               </div>
@@ -384,55 +516,41 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="rev-role">Role / Student / Company</label>
+                  <label htmlFor="rev-role">Role / Institution</label>
                   <input
                     id="rev-role"
                     type="text"
-                    placeholder="e.g. CS Student or Backend Dev"
+                    placeholder="e.g. CS Student @ MIT"
                     value={newReview.role}
                     onChange={e => setNewReview({ ...newReview, role: e.target.value })}
                   />
                 </div>
               </div>
 
-              {/* Gender Avatar Selector & Focus Tag */}
-              <div className="form-row-2">
-                <div className="form-group">
-                  <label htmlFor="rev-gender">Avatar Style</label>
-                  <select
-                    id="rev-gender"
-                    value={newReview.gender}
-                    onChange={e => setNewReview({ ...newReview, gender: e.target.value })}
-                  >
-                    <option value="male">Male Profile Icon</option>
-                    <option value="female">Female Profile Icon</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="rev-tag">Tested Concept</label>
-                  <select
-                    id="rev-tag"
-                    value={newReview.tag}
-                    onChange={e => setNewReview({ ...newReview, tag: e.target.value })}
-                  >
-                    <option value="Operating Systems">Operating Systems</option>
-                    <option value="Distributed Systems">Distributed Systems</option>
-                    <option value="Computer Networks">Computer Networks</option>
-                    <option value="Data Structures">Data Structures</option>
-                    <option value="General Feedback">General Platform</option>
-                  </select>
-                </div>
+              {/* Concept Tag */}
+              <div className="form-group">
+                <label htmlFor="rev-tag">Tested Concept</label>
+                <select
+                  id="rev-tag"
+                  value={newReview.tag}
+                  onChange={e => setNewReview({ ...newReview, tag: e.target.value })}
+                >
+                  <option value="Operating Systems">Operating Systems (Memory / Locks / Scheduling)</option>
+                  <option value="Distributed Systems">Distributed Systems (Raft / Consensus / Partitioning)</option>
+                  <option value="Computer Networks">Computer Networks (TCP Handshake / BGP Routing)</option>
+                  <option value="Data Structures">Data Structures & Algorithms</option>
+                  <option value="General Platform">General Platform Experience</option>
+                </select>
               </div>
 
               {/* Detailed Review Comment */}
               <div className="form-group">
-                <label htmlFor="rev-comment">Your Thoughts / Suggestions *</label>
+                <label htmlFor="rev-comment">Your Thoughts & Feedback *</label>
                 <textarea
                   id="rev-comment"
                   required
                   rows={3}
-                  placeholder="How did the visual simulations help you? Any feature suggestions or concepts to add?"
+                  placeholder="How did the visual simulations help you understand complex concepts?"
                   value={newReview.comment}
                   onChange={e => setNewReview({ ...newReview, comment: e.target.value })}
                 />
@@ -452,7 +570,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                   className="btn-submit-review"
                 >
                   <Send size={14} />
-                  <span>Submit Feedback</span>
+                  <span>Post Feedback</span>
                 </button>
               </div>
             </form>
@@ -463,69 +581,67 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
   )
 }
 
-// Vector Male / Female Profile Avatar Component
-function ProfileAvatar({ gender = 'male' }) {
-  if (gender === 'female') {
-    return (
-      <div className="reviewer-avatar female" title="Female Account">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="7" r="4" />
-          <path d="M6 21v-2a6 6 0 0 1 12 0v2" />
-          <path d="M16 4a4 4 0 0 1 0 6" strokeWidth="1.6" />
-        </svg>
-      </div>
-    )
+// Minimalist Initials Avatar Component
+function UserAvatar({ name, gender = 'male' }) {
+  const getInitials = (str) => {
+    if (!str) return 'NT'
+    const parts = str.trim().split(' ')
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    return str.slice(0, 2).toUpperCase()
   }
+
+  const initials = getInitials(name)
+  const isFemale = gender === 'female'
+
   return (
-    <div className="reviewer-avatar male" title="Male Account">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
+    <div className={`user-clean-avatar ${isFemale ? 'avatar-alt' : 'avatar-main'}`}>
+      <span>{initials}</span>
     </div>
   )
 }
 
-// Single Compact Review Card Component
-function ReviewCard({ review, isLiked, onLike }) {
+// Clean, De-Cluttered Review Card Component
+function CleanReviewCard({ review, isLiked, onLike }) {
   return (
-    <div className={`review-card ${review.isNew ? 'new-badge-glow' : ''}`}>
-      <div className="review-card-top">
-        <div className="review-stars-row">
-          {[...Array(review.rating)].map((_, i) => (
-            <Star key={i} size={12} className="star-gold" />
+    <div className={`clean-review-card ${review.isNew ? 'is-new' : ''}`}>
+      {/* Top Header: Tag + Minimal Star Indicator */}
+      <div className="card-top-row">
+        <span className="card-topic-tag">{review.tag}</span>
+        <div className="card-stars-mini">
+          {[...Array(review.rating || 5)].map((_, i) => (
+            <Star key={i} size={11} className="card-star-icon" />
           ))}
-        </div>
-        <div className="review-tag-badge">
-          {review.tag}
         </div>
       </div>
 
-      <p className="review-comment-text">
-        "{review.comment}"
+      {/* Quote Comment */}
+      <p className="card-quote-text">
+        “{review.comment}”
       </p>
 
-      <div className="review-card-footer">
-        <div className="reviewer-info">
-          <ProfileAvatar gender={review.gender} />
-          <div className="reviewer-meta">
-            <div className="reviewer-name-row">
-              <span className="reviewer-name">{review.name}</span>
+      {/* Card Footer: User Signature + Unobtrusive Like button */}
+      <div className="card-bottom-row">
+        <div className="card-user-info">
+          <UserAvatar name={review.name} gender={review.gender} />
+          <div className="card-user-details">
+            <div className="card-user-name-line">
+              <span className="card-user-name">{review.name}</span>
               {review.verified && (
-                <CheckCircle2 size={11} className="verified-check-icon" title="Early Tester" />
+                <CheckCircle2 size={12} className="card-verified-icon" title="Verified Tester" />
               )}
             </div>
-            <span className="reviewer-role">{review.role}</span>
+            <span className="card-user-role">{review.role}</span>
           </div>
         </div>
 
         <button 
-          className={`btn-helpful ${isLiked ? 'liked' : ''}`}
+          className={`card-like-btn ${isLiked ? 'liked' : ''}`}
           onClick={onLike}
-          aria-label="Helpful review"
+          aria-label="Mark review as helpful"
+          title="Helpful"
         >
-          <ThumbsUp size={11} />
-          <span>{review.likes + (isLiked ? 1 : 0)}</span>
+          <ThumbsUp size={12} />
+          <span className="like-counter">{review.likes + (isLiked ? 1 : 0)}</span>
         </button>
       </div>
     </div>
