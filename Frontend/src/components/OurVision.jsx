@@ -49,7 +49,7 @@ export default function OurVision({ onOpenFacility }) {
         endRadius={0}
         mediaZoom={1.15}
         scrollDistance={1.2}
-        holdDistance={0.8}
+        holdDistance={0.25}
         smoothing={0.08}
         overlayScrim={0.02}
         className="vision-scroll-expand"

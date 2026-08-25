@@ -319,7 +319,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
             ================================================================= */}
         <div className="community-motivating-wrap">
           <p className="motivating-single-line">
-            “Great engineers aren’t made by memorizing theory — they’re forged by <span className="motivating-highlight">observing systems in real time</span>.”
+            “Great engineers aren’t made by memorizing theory, they’re forged by <span className="motivating-highlight">observing systems in real time</span>.”
           </p>
         </div>
 
