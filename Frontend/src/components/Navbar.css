@@ -1,17 +1,25 @@
 /* ==========================================================================
-   NETRIUM NAVBAR ,  Top Header Layout (1.75s Fade-In Delay)
+   NETRIUM NAVBAR — Persistent Fixed Header Layout (Available Throughout Site)
    ========================================================================== */
 
 .netrium-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding-bottom: 12px;
-  position: relative;
-  z-index: 30;
-  animation: heroElementFadeIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
-  opacity: 0;
+  padding: 0 max(24px, calc((100vw - 1480px) / 2));
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  z-index: 1000;
+  opacity: 1;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .navbar-left {
@@ -26,18 +34,16 @@
 }
 
 .navbar-logo-img {
-  height: 80px;
+  height: 58px;
   width: auto;
   object-fit: contain;
-  margin-top: -12px;
-  margin-bottom: -12px;
-  margin-left: -10px;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.65));
+  margin-left: -6px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
   transition: transform var(--transition-fast);
 }
 
 .navbar-logo-img:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .navbar-right-actions {
@@ -77,6 +83,10 @@
 
 @media (max-width: 768px) {
   .netrium-navbar {
-    padding-bottom: 8px;
+    height: 60px;
+    padding: 0 16px;
+  }
+  .navbar-logo-img {
+    height: 46px;
   }
 }

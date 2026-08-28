@@ -31,9 +31,9 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
   const [submittedToast, setSubmittedToast] = useState(false)
 
   // Curated High-Signal Reviews
-  const initialLayer1 = [
+  const initialReviews = [
     {
-      id: 'l1-1',
+      id: 'rev-1',
       name: 'Aarav Sharma',
       gender: 'male',
       role: 'CS Undergrad, IIT Bombay',
@@ -44,7 +44,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l1-2',
+      id: 'rev-2',
       name: 'Elena Rostova',
       gender: 'female',
       role: 'Distributed Systems Student',
@@ -55,7 +55,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l1-3',
+      id: 'rev-3',
       name: 'Marcus Vance',
       gender: 'male',
       role: 'Junior DevOps Engineer',
@@ -66,7 +66,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l1-4',
+      id: 'rev-4',
       name: 'Sophia Lin',
       gender: 'female',
       role: 'CS Major @ UC Berkeley',
@@ -77,7 +77,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l1-5',
+      id: 'rev-5',
       name: 'Devon Miller',
       gender: 'male',
       role: 'Software Developer',
@@ -88,7 +88,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l1-6',
+      id: 'rev-6',
       name: 'Priya Nambiar',
       gender: 'female',
       role: 'Graduate Student, CMU',
@@ -97,12 +97,9 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       comment: 'Step-through execution for page fault swaps is a fantastic visual learning aid for low-level systems.',
       likes: 22,
       verified: true
-    }
-  ]
-
-  const initialLayer2 = [
+    },
     {
-      id: 'l2-1',
+      id: 'rev-7',
       name: 'Liam Gallagher',
       gender: 'male',
       role: 'Computer Engineering Student',
@@ -113,7 +110,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l2-2',
+      id: 'rev-8',
       name: 'Chloe Bennett',
       gender: 'female',
       role: 'CS Senior @ Waterloo',
@@ -124,7 +121,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l2-3',
+      id: 'rev-9',
       name: 'Kaito Tanaka',
       gender: 'male',
       role: 'Systems Enthusiast, Tokyo',
@@ -135,7 +132,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l2-4',
+      id: 'rev-10',
       name: 'Hannah Weber',
       gender: 'female',
       role: 'Junior Backend Developer',
@@ -146,7 +143,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l2-5',
+      id: 'rev-11',
       name: 'Rohan Deshmukh',
       gender: 'male',
       role: 'Networks Lab Student',
@@ -157,7 +154,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
       verified: true
     },
     {
-      id: 'l2-6',
+      id: 'rev-12',
       name: 'Alexei Ivanov',
       gender: 'male',
       role: 'Open Source Contributor',
@@ -207,14 +204,10 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     setTimeout(() => setSubmittedToast(false), 4500)
   }
 
-  // Combined layers for marquee
-  const layer1Reviews = useMemo(() => {
-    return [...userReviewsList, ...initialLayer1]
+  // Unified single layer reviews stream
+  const combinedReviews = useMemo(() => {
+    return [...userReviewsList, ...initialReviews]
   }, [userReviewsList])
-
-  const layer2Reviews = useMemo(() => {
-    return initialLayer2
-  }, [])
 
   return (
     <section className="community-reviews-section" id="community-reviews">
@@ -436,27 +429,17 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
         </div>
 
         {/* =================================================================
-            2. SMOOTH CONTINUOUS MARQUEE STREAM (ALL REVIEWS)
+            2. SMOOTH CONTINUOUS MARQUEE STREAM (SINGLE LAYER WITH DUAL END FADING)
             ================================================================= */}
         <div className="reviews-marquee-wrapper">
-          {/* Top Row: Flowing Left */}
+          {/* Fading Edge Overlays on Both Ends */}
+          <div className="marquee-fade-edge marquee-fade-left" aria-hidden="true" />
+          <div className="marquee-fade-edge marquee-fade-right" aria-hidden="true" />
+
+          {/* Unified Flowing Stream */}
           <div className="reviews-layer marquee-left">
             <div className="marquee-track">
-              {layer1Reviews.concat(layer1Reviews).map((rev, idx) => (
-                <CleanReviewCard 
-                  key={`${rev.id}-${idx}`} 
-                  review={rev} 
-                  isLiked={!!likedReviews[rev.id]} 
-                  onLike={() => handleLike(rev.id)} 
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom Row: Flowing Right */}
-          <div className="reviews-layer marquee-right">
-            <div className="marquee-track">
-              {layer2Reviews.concat(layer2Reviews).map((rev, idx) => (
+              {combinedReviews.concat(combinedReviews).map((rev, idx) => (
                 <CleanReviewCard 
                   key={`${rev.id}-${idx}`} 
                   review={rev} 

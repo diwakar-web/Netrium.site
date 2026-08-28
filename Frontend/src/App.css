@@ -24,7 +24,7 @@
   min-height: 100vh;
   height: auto;
   margin: 0 auto;
-  padding: 16px 40px 24px 40px;
+  padding: 84px 40px 24px 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -34,15 +34,6 @@
 /* ==========================================================================
    1. NAVBAR & SPACED DISTANCE
    ========================================================================== */
-.netrium-navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding-bottom: 12px;
-  position: relative;
-  z-index: 30;
-}
 
 /* Header Logo Image Link (Medium Balanced Brand Logo) */
 .navbar-logo-link {

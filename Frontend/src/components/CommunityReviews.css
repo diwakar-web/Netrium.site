@@ -572,44 +572,59 @@
 }
 
 /* ==========================================================================
-   2. REVIEWS MARQUEE (Continuous Dual Stream)
+   2. REVIEWS MARQUEE (Continuous Single Stream with Dual-End Fading)
    ========================================================================== */
 
 .reviews-marquee-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   overflow: hidden;
   position: relative;
+  padding: 10px 0;
   /* Deep smooth edge mask */
-  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-  padding: 6px 0;
+  mask-image: linear-gradient(to right, transparent 0%, #000000 7%, #000000 93%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000000 7%, #000000 93%, transparent 100%);
+}
+
+/* Fading Overlays on Both Ends */
+.marquee-fade-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(70px, 14vw, 220px);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.marquee-fade-left {
+  left: 0;
+  background: linear-gradient(to right, #000000 0%, rgba(0, 0, 0, 0.92) 25%, rgba(0, 0, 0, 0.5) 65%, transparent 100%);
+}
+
+.marquee-fade-right {
+  right: 0;
+  background: linear-gradient(to left, #000000 0%, rgba(0, 0, 0, 0.92) 25%, rgba(0, 0, 0, 0.5) 65%, transparent 100%);
 }
 
 .reviews-layer {
   display: flex;
   overflow: hidden;
   width: 100%;
-  padding: 4px 0;
+  padding: 8px 0;
 }
 
 .marquee-track {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   width: max-content;
   will-change: transform;
 }
 
 /* Smooth Relaxed Velocity */
 .marquee-left .marquee-track {
-  animation: marqueeLeft 120s linear infinite;
-}
-
-.marquee-right .marquee-track {
-  animation: marqueeRight 130s linear infinite;
+  animation: marqueeLeft 85s linear infinite;
 }
 
 .reviews-layer:hover .marquee-track {
@@ -619,11 +634,6 @@
 @keyframes marqueeLeft {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
-}
-
-@keyframes marqueeRight {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
 }
 
 /* ==========================================================================

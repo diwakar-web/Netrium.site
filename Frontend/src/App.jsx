@@ -62,14 +62,14 @@ export default function App() {
         grainIntensity={0.04}
       />
 
+      {/* FIXED TOP HEADER (Available throughout the entire website) */}
+      <Navbar
+        onOpenAuth={handleOpenAuth}
+        onOpenFacility={handleOpenFacility}
+      />
+
       {/* HERO STAGE CONTAINER */}
       <main className="netrium-hero-stage">
-        {/* TOP BAR: Logo Placeholder (Left) & ONLY 2 Buttons: Menu and Account (Right) */}
-        <Navbar
-          onOpenAuth={handleOpenAuth}
-          onOpenFacility={handleOpenFacility}
-        />
-
         {/* MOVING EXPLORATION RIBBON: Green Text on Pitch Black Background */}
         <ExplorationRibbon />
 
