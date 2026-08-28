@@ -1,177 +1,165 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { 
   Star, 
   CheckCircle2, 
   LogIn, 
   UserPlus, 
   ArrowRight, 
-  ThumbsUp, 
   X, 
   Send, 
   Sparkles, 
   PenLine,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react'
+import ScrambledText from './ScrambledText'
+import Dismissible from './Dismissible'
 import './CommunityReviews.css'
 
 export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
+  const [activeRowIndex, setActiveRowIndex] = useState(0)
   const [isReviewBoxOpen, setIsReviewBoxOpen] = useState(false)
   const [userReviewsList, setUserReviewsList] = useState([])
   const [newReview, setNewReview] = useState({
     name: '',
     role: '',
-    gender: 'male',
     rating: 5,
     tag: 'Operating Systems',
     comment: ''
   })
   const [hoverRating, setHoverRating] = useState(0)
-  const [likedReviews, setLikedReviews] = useState({})
   const [submittedToast, setSubmittedToast] = useState(false)
 
-  // Curated High-Signal Reviews
+  // Curated High-Signal Community Reviews (12 items -> 3 rows of 4)
   const initialReviews = [
     {
       id: 'rev-1',
+      tag: 'OS KERNEL & MEMORY',
       name: 'Aarav Sharma',
-      gender: 'male',
       role: 'CS Undergrad, IIT Bombay',
       rating: 5,
-      tag: 'OS Kernel & Memory',
-      comment: 'Testing TLB cache misses and multi-level page tables in real time made memory virtualization finally click for me.',
-      likes: 24,
-      verified: true
+      comment: 'Testing TLB cache misses and multi-level page tables in real time made memory virtualization finally click for me.'
     },
     {
       id: 'rev-2',
+      tag: 'RAFT CONSENSUS',
       name: 'Elena Rostova',
-      gender: 'female',
       role: 'Distributed Systems Student',
       rating: 5,
-      tag: 'Raft Consensus',
-      comment: 'Live split votes and log replication across partitioned nodes are so much clearer than static textbook slides.',
-      likes: 31,
-      verified: true
+      comment: 'Live split votes and log replication across partitioned nodes are so much clearer than static textbook slides.'
     },
     {
       id: 'rev-3',
+      tag: 'TCP & BGP ROUTING',
       name: 'Marcus Vance',
-      gender: 'male',
       role: 'Junior DevOps Engineer',
       rating: 5,
-      tag: 'TCP & BGP Routing',
-      comment: 'The 3-way handshake packet trace directly in the browser without any setup was super helpful for understanding congestion.',
-      likes: 18,
-      verified: true
+      comment: 'The 3-way handshake packet trace directly in the browser without any setup was super helpful for understanding congestion control.'
     },
     {
       id: 'rev-4',
+      tag: 'CONCURRENCY & LOCKS',
       name: 'Sophia Lin',
-      gender: 'female',
       role: 'CS Major @ UC Berkeley',
       rating: 5,
-      tag: 'Concurrency & Locks',
-      comment: 'Seeing race conditions and deadlocks on live thread execution timelines makes concurrent programming much less intimidating.',
-      likes: 29,
-      verified: true
+      comment: 'Seeing race conditions and deadlocks on live thread execution timelines makes concurrent programming much less intimidating.'
     },
     {
       id: 'rev-5',
+      tag: 'QUORUM ELECTIONS',
       name: 'Devon Miller',
-      gender: 'male',
       role: 'Software Developer',
       rating: 5,
-      tag: 'Distributed Systems',
-      comment: 'No Docker setup needed — opened the URL and experimented with quorum elections directly in the browser.',
-      likes: 37,
-      verified: true
+      comment: 'No Docker setup needed — opened the URL and experimented with quorum elections and network partitions in 30 seconds.'
     },
     {
       id: 'rev-6',
+      tag: 'MEMORY VIRTUALIZATION',
       name: 'Priya Nambiar',
-      gender: 'female',
       role: 'Graduate Student, CMU',
       rating: 5,
-      tag: 'Memory Virtualization',
-      comment: 'Step-through execution for page fault swaps is a fantastic visual learning aid for low-level systems.',
-      likes: 22,
-      verified: true
+      comment: 'Step-through execution for page fault swaps is a fantastic visual learning aid. Walking through multi-level page tables eliminated all my confusion.'
     },
     {
       id: 'rev-7',
+      tag: 'COMPUTER NETWORKS',
       name: 'Liam Gallagher',
-      gender: 'male',
       role: 'Computer Engineering Student',
       rating: 5,
-      tag: 'Computer Networks',
-      comment: 'Dropping packets and seeing retransmission timers trigger live is exactly what dry network textbooks lack.',
-      likes: 26,
-      verified: true
+      comment: 'Dropping packets and seeing retransmission timers trigger live is exactly what dry network textbooks lack.'
     },
     {
       id: 'rev-8',
+      tag: 'INTERVIEW PREP',
       name: 'Chloe Bennett',
-      gender: 'female',
       role: 'CS Senior @ Waterloo',
       rating: 5,
-      tag: 'Interview Prep',
-      comment: 'Used this to review distributed consensus edge cases before systems interviews. Visual models are invaluable.',
-      likes: 45,
-      verified: true
+      comment: 'Used this to review distributed consensus edge cases before systems interviews. Visual mental models are 10x more memorable.'
     },
     {
       id: 'rev-9',
+      tag: 'CPU SCHEDULING',
       name: 'Kaito Tanaka',
-      gender: 'male',
       role: 'Systems Enthusiast, Tokyo',
       rating: 5,
-      tag: 'CPU Scheduling',
-      comment: 'Interactive Round Robin vs MLFQ comparisons make scheduling latency trade-offs immediately intuitive.',
-      likes: 19,
-      verified: true
+      comment: 'Interactive Round Robin vs MLFQ comparisons make scheduling latency and starvation trade-offs immediately intuitive.'
     },
     {
       id: 'rev-10',
+      tag: 'DATA STRUCTURES',
       name: 'Hannah Weber',
-      gender: 'female',
       role: 'Junior Backend Developer',
       rating: 5,
-      tag: 'Data Structures',
-      comment: 'Live tree rebalancing and lock-free concurrent queues. Loving the visual-first approach to complex CS topics.',
-      likes: 33,
-      verified: true
+      comment: 'Live tree rebalancing and lock-free concurrent queues. Loving the visual-first approach to complex CS topics.'
     },
     {
       id: 'rev-11',
+      tag: 'BGP ROUTING',
       name: 'Rohan Deshmukh',
-      gender: 'male',
       role: 'Networks Lab Student',
       rating: 5,
-      tag: 'BGP Routing',
-      comment: 'Visualizing routing loops and convergence on topology graphs helped me ace my computer networks exam.',
-      likes: 21,
-      verified: true
+      comment: 'Visualizing routing loops, split-horizon, and path vector convergence on interactive topology graphs helped me ace my computer networks exam.'
     },
     {
       id: 'rev-12',
+      tag: 'OS KERNEL & IPC',
       name: 'Alexei Ivanov',
-      gender: 'male',
       role: 'Open Source Contributor',
       rating: 5,
-      tag: 'OS Kernel & IPC',
-      comment: 'Clean, fast, and accessible browser simulation. Can’t wait for more facilities to be added!',
-      likes: 38,
-      verified: true
+      comment: 'Clean, fast, and accessible browser simulation. Can’t wait for more facilities to be added!'
     }
   ]
 
-  const handleLike = (id) => {
-    setLikedReviews(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }))
+  const allReviews = useMemo(() => [...userReviewsList, ...initialReviews], [userReviewsList])
+
+  const cardsPerRow = 4
+  const totalRows = Math.ceil(allReviews.length / cardsPerRow) || 1
+
+  // Current single row of 4 reviews
+  const currentRowReviews = useMemo(() => {
+    const start = activeRowIndex * cardsPerRow
+    return allReviews.slice(start, start + cardsPerRow)
+  }, [allReviews, activeRowIndex])
+
+  const handlePrevRow = () => {
+    setActiveRowIndex(prev => (prev > 0 ? prev - 1 : totalRows - 1))
   }
+
+  const handleNextRow = () => {
+    setActiveRowIndex(prev => (prev < totalRows - 1 ? prev + 1 : 0))
+  }
+
+  // Ticker ribbon items
+  const ribbonTickerItems = [
+    'VERIFIED STUDENT & RESEARCHER EXPERIENCES',
+    '4.9/5 RATING ACROSS 50,000+ SYSTEMS LAB SESSIONS',
+    'REAL-TIME BROWSER SIMULATION • ZERO DOCKER OVERHEAD',
+    'OPERATING SYSTEMS • DISTRIBUTED CONSENSUS • NETWORK PROTOCOLS',
+    'TESTED & LOVED BY ENGINEERS WORLDWIDE'
+  ]
 
   const handleSubmitReview = (e) => {
     e.preventDefault()
@@ -179,115 +167,236 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
 
     const created = {
       id: `user-${Date.now()}`,
+      tag: newReview.tag.toUpperCase(),
       name: newReview.name.trim(),
       role: newReview.role.trim() || 'Early Tester',
-      gender: newReview.gender || 'male',
       rating: newReview.rating,
-      tag: newReview.tag,
-      comment: newReview.comment.trim(),
-      likes: 1,
-      verified: true,
-      isNew: true
+      comment: newReview.comment.trim()
     }
 
     setUserReviewsList([created, ...userReviewsList])
     setNewReview({
       name: '',
       role: '',
-      gender: 'male',
       rating: 5,
       tag: 'Operating Systems',
       comment: ''
     })
     setIsReviewBoxOpen(false)
+    setActiveRowIndex(0)
     setSubmittedToast(true)
     setTimeout(() => setSubmittedToast(false), 4500)
   }
-
-  // Unified single layer reviews stream
-  const combinedReviews = useMemo(() => {
-    return [...userReviewsList, ...initialReviews]
-  }, [userReviewsList])
 
   return (
     <section className="community-reviews-section" id="community-reviews">
       <div className="community-reviews-container">
         
         {/* =================================================================
-            1. UNIFIED HERO & CALL TO ACTION HEADER
+            1. TOP HEADER (DISMISSIBLE TITLE & SUBTITLE)
             ================================================================= */}
-        <div className="community-unified-hero">
-          {/* Subtle Top Badge */}
-          <div className="community-pill-badge">
-            <span className="pill-dot"></span>
-            <span>EARLY TESTER FEEDBACK & ACCESS</span>
+        <div className="clean-reviews-header">
+          <Dismissible as="div" className="clean-reviews-title-area">
+            <h2 className="clean-reviews-title">
+              <ScrambledText radius={100} duration={1.2} speed={0.5} scrambleChars=".:">
+                What Our Users Say..
+              </ScrambledText>
+            </h2>
+            <p className="clean-reviews-subtitle">
+              Authentic feedback from CS students, researchers, and systems engineers worldwide.
+            </p>
+          </Dismissible>
+        </div>
+
+        {/* =================================================================
+            2. INTERACTIVE REVIEW MARQUEE RIBBON
+            ================================================================= */}
+        <Dismissible as="div" className="reviews-ribbon-wrapper">
+          <div className="reviews-ribbon-track">
+            {[...ribbonTickerItems, ...ribbonTickerItems].map((text, idx) => (
+              <div className="reviews-ribbon-item" key={idx}>
+                <ShieldCheck size={13} className="reviews-ribbon-icon" />
+                <span className="reviews-ribbon-text">{text}</span>
+                <span className="reviews-ribbon-dot">•</span>
+              </div>
+            ))}
+          </div>
+        </Dismissible>
+
+        {/* =================================================================
+            3. SINGLE ROW OF 4 CARDS WITH PREV / NEXT BUTTONS
+            ================================================================= */}
+        <div className="single-row-stage">
+          {/* Left Arrow Button */}
+          <Dismissible inline as="div" className="row-nav-btn-wrap">
+            <button 
+              type="button"
+              className="row-nav-arrow-btn left"
+              onClick={handlePrevRow}
+              aria-label="Previous row of reviews"
+              title="Previous reviews"
+            >
+              <ChevronLeft size={22} />
+            </button>
+          </Dismissible>
+
+          {/* 1 Row at a Time: 4 Cards */}
+          <div className="single-row-4cards-grid" key={activeRowIndex}>
+            {currentRowReviews.map((rev) => {
+              const initials = rev.name
+                .trim()
+                .split(' ')
+                .slice(0, 2)
+                .map(p => p[0])
+                .join('')
+                .toUpperCase() || 'NT'
+
+              return (
+                <Dismissible as="div" className="clean-review-card" key={rev.id} crossPosition="inside-right">
+                  {/* Card Header: Tag & 5-Stars */}
+                  <div className="clean-card-header">
+                    <span className="clean-tag-badge">
+                      {rev.tag}
+                    </span>
+                    <div className="clean-stars-row" aria-label="5 stars rating">
+                      {[...Array(rev.rating || 5)].map((_, sIdx) => (
+                        <Star key={sIdx} size={13} className="star-filled" fill="#00bf63" />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Body: Quote */}
+                  <p className="clean-card-quote">
+                    “{rev.comment}”
+                  </p>
+
+                  {/* Card Footer: User Signature */}
+                  <div className="clean-card-footer">
+                    <div className="clean-avatar-circle">
+                      {initials}
+                    </div>
+                    <div className="clean-author-meta">
+                      <div className="clean-author-name">
+                        <span>{rev.name}</span>
+                      </div>
+                      <div className="clean-author-role">{rev.role}</div>
+                    </div>
+                  </div>
+                </Dismissible>
+              )
+            })}
           </div>
 
-          <h2 className="community-hero-title">
-            Step Inside the <span className="text-neon-gradient">Interactive Laboratory</span>
-          </h2>
+          {/* Right Arrow Button */}
+          <Dismissible inline as="div" className="row-nav-btn-wrap">
+            <button 
+              type="button"
+              className="row-nav-arrow-btn right"
+              onClick={handleNextRow}
+              aria-label="Next row of reviews"
+              title="Next reviews"
+            >
+              <ChevronRight size={22} />
+            </button>
+          </Dismissible>
+        </div>
 
-          <p className="community-hero-desc">
-            Explore live, interactive simulations for Operating Systems, Networks, and Distributed Systems. Save custom topologies, trace execution paths, and share your early feedback.
-          </p>
+        {/* Row Pagination Dots & Controls */}
+        <div className="reviews-row-pagination">
+          <div className="reviews-dots-row">
+            {Array.from({ length: totalRows }).map((_, rIdx) => (
+              <button
+                type="button"
+                key={rIdx}
+                className={`reviews-row-dot ${activeRowIndex === rIdx ? 'active' : ''}`}
+                onClick={() => setActiveRowIndex(rIdx)}
+                aria-label={`View review row ${rIdx + 1}`}
+                title={`Row ${rIdx + 1} of ${totalRows}`}
+              />
+            ))}
+          </div>
+          <span className="reviews-counter-badge">
+            Row {activeRowIndex + 1} of {totalRows}
+          </span>
+        </div>
+
+        {/* =================================================================
+            4. LOGIN MESSAGE & ACCESS HERO BLOCK
+            ================================================================= */}
+        <div className="community-unified-hero">
+          <Dismissible as="h2" className="community-hero-title">
+            Step Inside the <span className="text-neon-gradient">Interactive Laboratory</span>
+          </Dismissible>
+
+          <Dismissible as="p" className="community-hero-desc">
+            Explore live, interactive simulations for Operating Systems, Networks, and Distributed Systems. Save custom topologies, trace execution paths, and collaborate with engineers worldwide.
+          </Dismissible>
 
           {/* Login / Sign Up Action Buttons */}
           <div className="community-hero-actions">
-            <button 
-              className="btn-lab-primary"
-              onClick={() => onOpenAuth && onOpenAuth('login')}
-            >
-              <LogIn size={15} />
-              <span>Sign In to Laboratory</span>
-              <ArrowRight size={14} className="btn-icon-arrow" />
-            </button>
+            <Dismissible inline as="div">
+              <button 
+                className="btn-lab-primary"
+                onClick={() => onOpenAuth && onOpenAuth('login')}
+                aria-label="Sign In to Laboratory"
+              >
+                <LogIn size={15} />
+                <span>Sign In to Laboratory</span>
+                <ArrowRight size={14} className="btn-icon-arrow" />
+              </button>
+            </Dismissible>
 
-            <button 
-              className="btn-lab-secondary"
-              onClick={() => onOpenAuth && onOpenAuth('signup')}
-            >
-              <UserPlus size={15} />
-              <span>Create Free Account</span>
-            </button>
+            <Dismissible inline as="div">
+              <button 
+                className="btn-lab-secondary"
+                onClick={() => onOpenAuth && onOpenAuth('signup')}
+                aria-label="Create Free Account"
+              >
+                <UserPlus size={15} />
+                <span>Create Free Account</span>
+              </button>
+            </Dismissible>
           </div>
 
           {/* ===============================================================
-              REDESIGNED REVIEW BUTTON & INLINE EXPANDABLE BOX (UNDER BUTTON ONLY)
+              REVIEW / FEEDBACK TRIGGER BUTTON & INLINE DRAWER
               =============================================================== */}
           <div className="community-review-action-area">
-            <button 
-              type="button"
-              className={`btn-review-trigger ${isReviewBoxOpen ? 'active-open' : ''}`}
-              onClick={() => setIsReviewBoxOpen(prev => !prev)}
-              aria-expanded={isReviewBoxOpen}
-              aria-controls="inline-review-box"
-              id="write-review-btn"
-            >
-              <div className="review-trigger-left">
-                <span className="review-trigger-icon-badge">
-                  <PenLine size={15} />
-                </span>
-                <div className="review-trigger-texts">
-                  <span className="review-trigger-main">
-                    {isReviewBoxOpen ? 'Close Review Form' : 'Write a Simulation Review'}
+            <Dismissible as="div" style={{ width: '100%' }}>
+              <button 
+                type="button"
+                className={`btn-review-trigger ${isReviewBoxOpen ? 'active-open' : ''}`}
+                onClick={() => setIsReviewBoxOpen(prev => !prev)}
+                aria-expanded={isReviewBoxOpen}
+                aria-controls="inline-review-box"
+                id="write-review-btn"
+              >
+                <div className="review-trigger-left">
+                  <span className="review-trigger-icon-badge">
+                    <PenLine size={15} />
                   </span>
-                  <span className="review-trigger-sub">
-                    Tested our tools? Share your feedback with the community
+                  <div className="review-trigger-texts">
+                    <span className="review-trigger-main">
+                      {isReviewBoxOpen ? 'Close Review Form' : 'Write a Simulation Review'}
+                    </span>
+                    <span className="review-trigger-sub">
+                      Tested our tools? Share your feedback with the community
+                    </span>
+                  </div>
+                </div>
+
+                <div className="review-trigger-right">
+                  <span className="review-trigger-pill">
+                    {isReviewBoxOpen ? 'Close Box' : 'Write Review'}
+                  </span>
+                  <span className="review-trigger-chevron">
+                    {isReviewBoxOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </span>
                 </div>
-              </div>
+              </button>
+            </Dismissible>
 
-              <div className="review-trigger-right">
-                <span className="review-trigger-pill">
-                  {isReviewBoxOpen ? 'Close Box' : 'Write Review'}
-                </span>
-                <span className="review-trigger-chevron">
-                  {isReviewBoxOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </span>
-              </div>
-            </button>
-
-            {/* INLINE EXPANDABLE REVIEW BOX - Directly below the button */}
+            {/* INLINE EXPANDABLE REVIEW BOX */}
             <div 
               id="inline-review-box"
               className={`inline-review-drawer ${isReviewBoxOpen ? 'drawer-open' : ''}`}
@@ -303,7 +412,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                       </div>
                       <h3 className="inline-review-title">Share Your Experience</h3>
                       <p className="inline-review-subtitle">
-                        Your review publishes instantly to the live community stream below.
+                        Your feedback publishes directly into the Community Reviews Showcase!
                       </p>
                     </div>
                     <button 
@@ -377,9 +486,8 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                       >
                         <option value="Operating Systems">Operating Systems (Memory / Locks / Scheduling)</option>
                         <option value="Distributed Systems">Distributed Systems (Raft / Consensus / Partitioning)</option>
-                        <option value="Computer Networks">Computer Networks (TCP Handshake / BGP Routing)</option>
-                        <option value="Data Structures">Data Structures & Algorithm Core</option>
-                        <option value="General Platform">General Laboratory Experience</option>
+                        <option value="Networks">Computer Networks (TCP Handshake / BGP Routing)</option>
+                        <option value="Concurrency">Concurrency & Multi-Threading</option>
                       </select>
                     </div>
 
@@ -410,7 +518,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                         className="btn-inline-submit"
                       >
                         <Send size={14} />
-                        <span>Post Review</span>
+                        <span>Add Review</span>
                       </button>
                     </div>
                   </form>
@@ -422,114 +530,13 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
             {submittedToast && (
               <div className="review-toast-success">
                 <CheckCircle2 size={15} className="toast-icon" />
-                <span>Thank you! Your feedback has been published to the live community feed below.</span>
+                <span>Thank you! Your feedback has been added to the reviews showcase.</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* =================================================================
-            2. SMOOTH CONTINUOUS MARQUEE STREAM (SINGLE LAYER WITH DUAL END FADING)
-            ================================================================= */}
-        <div className="reviews-marquee-wrapper">
-          {/* Fading Edge Overlays on Both Ends */}
-          <div className="marquee-fade-edge marquee-fade-left" aria-hidden="true" />
-          <div className="marquee-fade-edge marquee-fade-right" aria-hidden="true" />
-
-          {/* Unified Flowing Stream */}
-          <div className="reviews-layer marquee-left">
-            <div className="marquee-track">
-              {combinedReviews.concat(combinedReviews).map((rev, idx) => (
-                <CleanReviewCard 
-                  key={`${rev.id}-${idx}`} 
-                  review={rev} 
-                  isLiked={!!likedReviews[rev.id]} 
-                  onLike={() => handleLike(rev.id)} 
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* =================================================================
-            3. PHILOSOPHY STATEMENT
-            ================================================================= */}
-        <div className="community-quote-banner">
-          <div className="quote-banner-inner">
-            <p className="quote-text">
-              “Great engineers aren’t made by memorizing theory, they’re forged by <span className="quote-green-highlight">observing systems in real time</span>.”
-            </p>
-          </div>
-        </div>
-
       </div>
     </section>
-  )
-}
-
-// Minimalist Initials Avatar Component
-function UserAvatar({ name, gender = 'male' }) {
-  const getInitials = (str) => {
-    if (!str) return 'NT'
-    const parts = str.trim().split(' ')
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-    return str.slice(0, 2).toUpperCase()
-  }
-
-  const initials = getInitials(name)
-  const isFemale = gender === 'female'
-
-  return (
-    <div className={`user-clean-avatar ${isFemale ? 'avatar-alt' : 'avatar-main'}`}>
-      <span>{initials}</span>
-    </div>
-  )
-}
-
-// Clean, De-Cluttered Review Card Component
-function CleanReviewCard({ review, isLiked, onLike }) {
-  return (
-    <div className={`clean-review-card ${review.isNew ? 'is-new' : ''}`}>
-      {/* Top Header: Tag + Minimal Star Indicator */}
-      <div className="card-top-row">
-        <span className="card-topic-tag">{review.tag}</span>
-        <div className="card-stars-mini">
-          {[...Array(review.rating || 5)].map((_, i) => (
-            <Star key={i} size={11} className="card-star-icon" />
-          ))}
-        </div>
-      </div>
-
-      {/* Quote Comment */}
-      <p className="card-quote-text">
-        “{review.comment}”
-      </p>
-
-      {/* Card Footer: User Signature + Unobtrusive Like button */}
-      <div className="card-bottom-row">
-        <div className="card-user-info">
-          <UserAvatar name={review.name} gender={review.gender} />
-          <div className="card-user-details">
-            <div className="card-user-name-line">
-              <span className="card-user-name">{review.name}</span>
-              {review.verified && (
-                <CheckCircle2 size={12} className="card-verified-icon" title="Verified Tester" />
-              )}
-            </div>
-            <span className="card-user-role">{review.role}</span>
-          </div>
-        </div>
-
-        <button 
-          className={`card-like-btn ${isLiked ? 'liked' : ''}`}
-          onClick={onLike}
-          aria-label="Mark review as helpful"
-          title="Helpful"
-        >
-          <ThumbsUp size={12} />
-          <span className="like-counter">{review.likes + (isLiked ? 1 : 0)}</span>
-        </button>
-      </div>
-    </div>
   )
 }

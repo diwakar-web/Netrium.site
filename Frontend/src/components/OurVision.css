@@ -23,7 +23,7 @@
   height: 100%;
   max-height: 100%;
   margin: 0 auto;
-  padding: 1rem 1.35rem;
+  padding: 88px 1.35rem 1.1rem 1.35rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -108,6 +108,43 @@
   overflow: hidden;
   cursor: pointer;
   pointer-events: auto;
+}
+
+.vision-card.vision-card-ghost-space {
+  background: transparent !important;
+  border: 1px dashed rgba(0, 0, 0, 0.15) !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.vision-card .card-dismiss-cross-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.vision-card:hover .card-dismiss-cross-btn {
+  opacity: 1;
+}
+
+.vision-card .card-dismiss-cross-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
 }
 
 /* Pure Smooth Enlargement on Hover (No Dimming of Other Cards, No Heavy Glow) */

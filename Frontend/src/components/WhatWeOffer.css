@@ -10,7 +10,8 @@
   max-width: 100%;
   background: #000000;
   border-bottom: none;
-  padding: 60px 0 20px 0;
+  padding: 110px 0 40px 0;
+  scroll-margin-top: 90px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -134,8 +135,46 @@
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.offering-rect-card.card-ghost-space {
+  background: transparent !important;
+  border: 1px dashed rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
 .offering-rect-card:hover {
   background: #1e242f;
+}
+
+/* Card Dismiss Cross Button */
+.card-dismiss-cross-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.offering-rect-card:hover .card-dismiss-cross-btn {
+  opacity: 1;
+}
+
+.card-dismiss-cross-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
 }
 
 /* Alternating Green & White Borders */

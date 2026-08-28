@@ -25,6 +25,42 @@
   opacity: 0;
 }
 
+.exploration-ribbon-ghost-space {
+  height: 36px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.ribbon-dismiss-cross-btn {
+  position: absolute;
+  top: 7px;
+  right: 16px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 30;
+}
+
+.exploration-ribbon-wrapper:hover .ribbon-dismiss-cross-btn {
+  opacity: 1;
+}
+
+.ribbon-dismiss-cross-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
 .ribbon-track {
   display: flex;
   flex-direction: row;

@@ -1,5 +1,6 @@
 import { User as UserIcon } from 'lucide-react'
 import StaggeredMenu from './StaggeredMenu'
+import Dismissible from './Dismissible'
 import darkLogo from '../assets/DarkLogo.png'
 import './Navbar.css'
 
@@ -21,16 +22,18 @@ export default function Navbar({ onOpenAuth, onOpenFacility }) {
 
   return (
     <header className="netrium-navbar">
-      {/* Top Left: Dark Logo Image */}
+      {/* Top Left: Dismissible Dark Logo Image */}
       <div className="navbar-left">
-        <a href="#" className="navbar-logo-link" aria-label="Netrium Home">
-          <img src={darkLogo} alt="Netrium Logo" className="navbar-logo-img" />
-        </a>
+        <Dismissible inline as="div" className="navbar-logo-wrapper">
+          <a href="#" className="navbar-logo-link" aria-label="Netrium Home">
+            <img src={darkLogo} alt="Netrium Logo" className="navbar-logo-img" />
+          </a>
+        </Dismissible>
       </div>
 
-      {/* Right side: ONLY 2 Buttons (Staggered Menu & Account) */}
+      {/* Right side: Dismissible Menu & Account Buttons */}
       <div className="navbar-right-actions">
-        <div className="staggered-menu-nav-container">
+        <Dismissible inline as="div" className="staggered-menu-nav-container">
           <StaggeredMenu
             position="right"
             isFixed={false}
@@ -47,16 +50,18 @@ export default function Navbar({ onOpenAuth, onOpenFacility }) {
               onOpenFacility && onOpenFacility(facilityId)
             }}
           />
-        </div>
+        </Dismissible>
 
-        <button 
-          className="btn-nav-account"
-          onClick={() => onOpenAuth('login')}
-          aria-label="Open Account"
-        >
-          <UserIcon size={16} />
-          <span>Account</span>
-        </button>
+        <Dismissible inline as="div">
+          <button 
+            className="btn-nav-account"
+            onClick={() => onOpenAuth('login')}
+            aria-label="Open Account"
+          >
+            <UserIcon size={16} />
+            <span>Account</span>
+          </button>
+        </Dismissible>
       </div>
     </header>
   )

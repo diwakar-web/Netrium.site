@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Dismissible from './Dismissible'
 import avatar1 from '../assets/avatar1.jpg'
 import avatar2 from '../assets/avatar2.jpg'
 import avatar3 from '../assets/avatar3.jpg'
@@ -16,7 +17,12 @@ export default function ActiveNodes() {
   }, [])
 
   return (
-    <div className="active-nodes-container" title="Active real-time simulation nodes connected across universities and research labs">
+    <Dismissible 
+      inline 
+      as="div" 
+      className="active-nodes-container" 
+      title="Active real-time simulation nodes connected across universities and research labs"
+    >
       {/* 4 Overlapping Avatars */}
       <div className="avatar-stack">
         <div className="avatar-item" style={{ zIndex: 4 }}>
@@ -46,6 +52,6 @@ export default function ActiveNodes() {
         </div>
         <p className="active-nodes-subtitle">our laboratory</p>
       </div>
-    </div>
+    </Dismissible>
   )
 }

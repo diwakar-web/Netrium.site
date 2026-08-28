@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { MessageSquareQuote } from 'lucide-react'
+import { MessageSquareQuote, X } from 'lucide-react'
 
 export default function UserReviews() {
+  const [isDismissed, setIsDismissed] = useState(false)
   const reviews = [
     {
       firstName: 'Aarav',
@@ -45,6 +46,10 @@ export default function UserReviews() {
     return () => clearInterval(interval)
   }, [isPaused, reviews.length])
 
+  if (isDismissed) {
+    return <div className="reviews-ghost-space" />
+  }
+
   const currentReview = reviews[currentIndex]
 
   return (
@@ -53,6 +58,15 @@ export default function UserReviews() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      <button 
+        type="button" 
+        className="hero-card-dismiss-cross-btn"
+        onClick={() => setIsDismissed(true)}
+        title="Dismiss card temporarily"
+        aria-label="Dismiss user reviews card"
+      >
+        <X size={11} />
+      </button>
       {/* Review Box: First Name + Review in quotation marks, changing every 5s */}
       <div className="review-box" key={currentIndex}>
         <div className="review-header">

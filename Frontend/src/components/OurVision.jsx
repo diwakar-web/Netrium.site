@@ -1,9 +1,16 @@
-import React from 'react'
-import { ArrowRight } from 'lucide-react'
+import React, { useState } from 'react'
+import { ArrowRight, X } from 'lucide-react'
 import ScrollExpand from './ScrollExpand'
 import './OurVision.css'
 
 export default function OurVision({ onOpenFacility }) {
+  const [dismissedCards, setDismissedCards] = useState({})
+
+  const handleDismissCard = (idx, e) => {
+    e.stopPropagation()
+    setDismissedCards(prev => ({ ...prev, [idx]: true }))
+  }
+
   const problems = [
     {
       stat: '75%–80% vs 10%–20%',
@@ -65,15 +72,31 @@ export default function OurVision({ onOpenFacility }) {
             </p>
           </div>
 
-          {/* 6 Problem Cards Grid: 3x2 Matrix */}
+          {/* 6 Problem Cards Grid: 3x2 Matrix with Dismiss Buttons */}
           <div className="vision-problems-grid">
-            {problems.map((item, idx) => (
-              <div className="vision-card" key={idx}>
-                <div className="vision-card-stat">{item.stat}</div>
-                <h3 className="vision-card-title">{item.title}</h3>
-                <p className="vision-card-desc">{item.desc}</p>
-              </div>
-            ))}
+            {problems.map((item, idx) => {
+              const isDismissed = dismissedCards[idx]
+              if (isDismissed) {
+                return <div className="vision-card vision-card-ghost-space" key={idx} aria-hidden="true" />
+              }
+
+              return (
+                <div className="vision-card" key={idx}>
+                  <button
+                    type="button"
+                    className="card-dismiss-cross-btn"
+                    onClick={(e) => handleDismissCard(idx, e)}
+                    title="Dismiss card temporarily"
+                    aria-label="Dismiss card"
+                  >
+                    <X size={12} />
+                  </button>
+                  <div className="vision-card-stat">{item.stat}</div>
+                  <h3 className="vision-card-title">{item.title}</h3>
+                  <p className="vision-card-desc">{item.desc}</p>
+                </div>
+              )
+            })}
           </div>
 
           {/* Concluding Statement: What Netrium Solves */}

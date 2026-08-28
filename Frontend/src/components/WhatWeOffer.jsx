@@ -1,9 +1,15 @@
-import React from 'react'
-import { Binary, Server, Network, Layers, GitFork, ArrowUpRight } from 'lucide-react'
+import { useState } from 'react'
+import { Binary, Server, Network, Layers, GitFork, ArrowUpRight, X } from 'lucide-react'
 import ScrambledText from './ScrambledText'
 import './WhatWeOffer.css'
 
 export default function WhatWeOffer({ onOpenFacility }) {
+  const [dismissedCardKeys, setDismissedCardKeys] = useState({})
+
+  const handleDismissCard = (cardKey, e) => {
+    e.stopPropagation()
+    setDismissedCardKeys(prev => ({ ...prev, [cardKey]: true }))
+  }
   const sections = [
     {
       category: 'DATA STRUCTURES & ALGORITHMS',
@@ -140,11 +146,6 @@ export default function WhatWeOffer({ onOpenFacility }) {
   return (
     <section className="what-we-offer-section" id="what-we-offer">
       <div className="what-we-offer-container">
-        {/* Section Badge */}
-        <div className="offer-badge-wrap">
-          <span className="offer-badge">LABORATORY CAPABILITIES</span>
-        </div>
-
         {/* Main Heading with ScrambledText Component */}
         <h2 className="offer-heading">
           <ScrambledText radius={100} duration={1.2} speed={0.5} scrambleChars=".:">
@@ -181,8 +182,20 @@ export default function WhatWeOffer({ onOpenFacility }) {
                 {/* 3 Square Cards Grid with Alternating Green & White Borders */}
                 <div className="row-cards-grid">
                   {section.cards.map((item, idx) => {
+                    const cardKey = `${sIdx}-${idx}`
+                    const isDismissed = dismissedCardKeys[cardKey]
                     const isGreen = (sIdx + idx) % 2 === 0
                     const borderClass = isGreen ? 'border-green' : 'border-white'
+
+                    if (isDismissed) {
+                      return (
+                        <div 
+                          className="offering-rect-card card-ghost-space" 
+                          key={idx}
+                          aria-hidden="true" 
+                        />
+                      )
+                    }
 
                     return (
                       <div 
@@ -190,6 +203,17 @@ export default function WhatWeOffer({ onOpenFacility }) {
                         key={idx}
                         aria-label={`${section.category} - ${item.title}`}
                       >
+                        {/* Dismiss Cross Icon */}
+                        <button
+                          type="button"
+                          className="card-dismiss-cross-btn"
+                          onClick={(e) => handleDismissCard(cardKey, e)}
+                          title="Dismiss card temporarily"
+                          aria-label="Dismiss card"
+                        >
+                          <X size={12} />
+                        </button>
+
                         {/* Ambient Radial Hover Aura */}
                         <div className="card-ambient-glow" aria-hidden="true" />
 

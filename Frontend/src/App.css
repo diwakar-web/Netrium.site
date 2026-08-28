@@ -24,7 +24,7 @@
   min-height: 100vh;
   height: auto;
   margin: 0 auto;
-  padding: 84px 40px 24px 40px;
+  padding: 94px 40px 24px 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -113,10 +113,13 @@
 
 /* Upper Left: Active Nodes / Users Stack (Border Removed, Divided by ||) */
 .active-nodes-container {
-  display: flex;
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  max-width: max-content;
   align-items: center;
   gap: 12px;
-  padding: 0;
+  padding: 4px 6px;
   background: transparent;
   border: none;
   backdrop-filter: none;
@@ -206,6 +209,58 @@
   margin: 0;
 }
 
+/* Ghost Spaces */
+.active-nodes-ghost-space {
+  min-height: 48px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.why-netrium-ghost-space {
+  min-height: 80px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.reviews-ghost-space {
+  min-height: 80px;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* Hero Cards Dismiss Cross Button */
+.hero-card-dismiss-cross-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.active-nodes-container:hover .hero-card-dismiss-cross-btn,
+.why-netrium-card:hover .hero-card-dismiss-cross-btn,
+.reviews-container:hover .hero-card-dismiss-cross-btn {
+  opacity: 1;
+}
+
+.hero-card-dismiss-cross-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
 /* Upper Right: Why Netrium Card & Social Icon Bar (Scaled Down) */
 .why-netrium-wrapper {
   display: flex;
@@ -214,6 +269,7 @@
 }
 
 .why-netrium-card {
+  position: relative;
   width: 290px;
   background: transparent;
   backdrop-filter: none;

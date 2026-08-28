@@ -1,4 +1,5 @@
 import { Server, Network, Layers, GitFork, Binary, ArrowUpRight } from 'lucide-react'
+import Dismissible from './Dismissible'
 
 export default function FacilitiesSection({ onSelectFacility, activeFacilityId }) {
   const facilities = [
@@ -36,22 +37,25 @@ export default function FacilitiesSection({ onSelectFacility, activeFacilityId }
 
   return (
     <div className="facilities-container">
-      <h2 className="facilities-heading">The facilities we provide :</h2>
+      <Dismissible as="h2" className="facilities-heading">
+        The facilities we provide :
+      </Dismissible>
 
       <div className="facilities-grid">
         {facilities.map((fac) => {
           const isActive = activeFacilityId === fac.id
           return (
-            <button
-              key={fac.id}
-              className={`facility-pill ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectFacility(fac.id)}
-              aria-label={`Open facility: ${fac.label}`}
-              title={fac.description}
-            >
-              <span className="pill-label">{fac.label}</span>
-              <ArrowUpRight size={13} className="pill-arrow" />
-            </button>
+            <Dismissible inline as="div" key={fac.id}>
+              <button
+                className={`facility-pill ${isActive ? 'active' : ''}`}
+                onClick={() => onSelectFacility(fac.id)}
+                aria-label={`Open facility: ${fac.label}`}
+                title={fac.description}
+              >
+                <span className="pill-label">{fac.label}</span>
+                <ArrowUpRight size={13} className="pill-arrow" />
+              </button>
+            </Dismissible>
           )
         })}
       </div>
