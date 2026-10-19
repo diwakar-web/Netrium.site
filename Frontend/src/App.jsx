@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { CheckCircle2 } from 'lucide-react'
 import GradientWaves from './components/GradientWaves'
 import Navbar from './components/Navbar'
 import ExplorationRibbon from './components/ExplorationRibbon'
@@ -13,12 +15,26 @@ import OurVision from './components/OurVision'
 import CommunityReviews from './components/CommunityReviews'
 import Footer from './components/Footer'
 import FacilityModal from './components/FacilityModal'
-import AuthModal from './components/AuthModal'
+import AuthPage from './pages/AuthPage'
+import ProfilePage from './pages/ProfilePage'
+import MyLabsPage from './pages/MyLabsPage'
+import TopologiesPage from './pages/TopologiesPage'
+import TopologyLabPage from './pages/TopologyLabPage'
 import './App.css'
 
-export default function App() {
+function LandingHome() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [activeFacility, setActiveFacility] = useState(null)
-  const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' })
+  const [toastMessage, setToastMessage] = useState('')
+
+  useEffect(() => {
+    if (location.state?.profileSaved) {
+      setToastMessage('Profile changes saved successfully! Your credentials have been updated in the database.')
+      const timer = setTimeout(() => setToastMessage(''), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [location.state])
 
   const handleOpenFacility = (facilityId) => {
     setActiveFacility(facilityId)
@@ -29,19 +45,27 @@ export default function App() {
   }
 
   const handleOpenAuth = (mode = 'login') => {
-    setAuthModal({ isOpen: true, mode })
-  }
-
-  const handleCloseAuth = () => {
-    setAuthModal({ isOpen: false, mode: 'login' })
+    navigate('/login', { state: { mode } })
   }
 
   return (
     <div className="netrium-page-wrapper">
+      {/* Floating Success Toast on Profile Save */}
+      {toastMessage && (
+        <div className="netrium-floating-toast">
+          <div className="toast-inner">
+            <CheckCircle2 size={16} className="toast-icon" />
+            <span>{toastMessage}</span>
+          </div>
+          <button type="button" className="toast-close-btn" onClick={() => setToastMessage('')} aria-label="Close notification">
+            &times;
+          </button>
+        </div>
+      )}
       {/* React Bits Raymarched GradientWaves Background */}
       <GradientWaves
         horizonColor="#000000ff"
-        waveColor="#c6c6c6ff" //keep it like this only
+        waveColor="#c6c6c6ff"
         crestColor="#ffffff"
         speed={0.4}
         amplitude={2.8}
@@ -62,15 +86,14 @@ export default function App() {
         grainIntensity={0.04}
       />
 
-      {/* FIXED TOP HEADER (Available throughout the entire website) */}
+      {/* FIXED TOP HEADER (Shows Login button redirecting to /login, or user dropdown with JWT option) */}
       <Navbar
-        onOpenAuth={handleOpenAuth}
         onOpenFacility={handleOpenFacility}
       />
 
       {/* HERO STAGE CONTAINER */}
       <main className="netrium-hero-stage">
-        {/* MOVING EXPLORATION RIBBON: Green Text on Pitch Black Background */}
+        {/* MOVING EXPLORATION RIBBON */}
         <ExplorationRibbon />
 
         {/* UPPER GRID ROW: Active Nodes (Left) & Why Netrium (Right) */}
@@ -126,15 +149,21 @@ export default function App() {
           onClose={handleCloseFacility}
         />
       )}
-
-      {/* AUTHENTICATION MODAL */}
-      {authModal.isOpen && (
-        <AuthModal
-          mode={authModal.mode}
-          onClose={handleCloseAuth}
-          onSwitchMode={(mode) => setAuthModal({ isOpen: true, mode })}
-        />
-      )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/signup" element={<AuthPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/my-labs" element={<MyLabsPage />} />
+      <Route path="/topologies" element={<TopologiesPage />} />
+      <Route path="/topologies/:topologyId" element={<TopologyLabPage />} />
+      <Route path="*" element={<LandingHome />} />
+    </Routes>
   )
 }

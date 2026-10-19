@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Binary, Server, Network, Layers, GitFork, ArrowUpRight, X } from 'lucide-react'
 import ScrambledText from './ScrambledText'
 import './WhatWeOffer.css'
 
 export default function WhatWeOffer({ onOpenFacility }) {
+  const navigate = useNavigate()
   const [dismissedCardKeys, setDismissedCardKeys] = useState({})
 
   const handleDismissCard = (cardKey, e) => {
@@ -244,7 +246,13 @@ export default function WhatWeOffer({ onOpenFacility }) {
                 <div className="row-footer-btn-wrap">
                   <button 
                     className="btn-lets-understand"
-                    onClick={() => onOpenFacility && onOpenFacility(section.facilityId)}
+                    onClick={() => {
+                      if (section.category === 'NETWORK TOPOLOGIES' || section.facilityId === 'multi-mesh') {
+                        navigate('/topologies');
+                      } else if (onOpenFacility) {
+                        onOpenFacility(section.facilityId);
+                      }
+                    }}
                     aria-label={`Build & Simulate ${section.category}`}
                   >
                     <span>Build & Simulate</span>

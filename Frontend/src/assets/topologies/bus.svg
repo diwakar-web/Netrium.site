@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <defs>
+    <linearGradient id="busBackboneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="12%" stop-color="#38bdf8" />
+      <stop offset="88%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#ef4444" />
+    </linearGradient>
+    <radialGradient id="busTapGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+    <filter id="busGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ambient Bus Wave Guidelines (Transparent Background) -->
+  <g stroke="rgba(56, 189, 248, 0.12)" fill="none" stroke-width="1">
+    <line x1="50" y1="210" x2="750" y2="210" stroke-dasharray="4 8" />
+    <line x1="50" y1="310" x2="750" y2="310" stroke-dasharray="4 8" />
+  </g>
+
+  <!-- HEAVY COAXIAL BACKBONE TRUNK CABLE (y=260) -->
+  <g>
+    <!-- Outer Glow -->
+    <line x1="60" y1="260" x2="740" y2="260" stroke="#38bdf8" stroke-width="12" stroke-opacity="0.25" stroke-linecap="round" />
+    <!-- Core Copper Cable -->
+    <line x1="60" y1="260" x2="740" y2="260" stroke="url(#busBackboneGrad)" stroke-width="6" stroke-linecap="round" />
+  </g>
+
+  <!-- Bidirectional Wave Propagation Markers -->
+  <g fill="#38bdf8" opacity="0.8">
+    <polygon points="340,256 325,251 325,261" />
+    <polygon points="460,256 475,251 475,261" />
+    <text x="400" y="248" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="1">BIDIRECTIONAL CSMA/CD SIGNAL WAVE</text>
+  </g>
+
+  <!-- 50-OHM TERMINATOR (LEFT: x=60, y=260) -->
+  <g transform="translate(60, 260)">
+    <rect x="-18" y="-28" width="22" height="56" rx="5" fill="#180a0c" stroke="#ef4444" stroke-width="2.5" />
+    <circle cx="-7" cy="0" r="4" fill="#ef4444" />
+    <!-- Grounding Symbol -->
+    <line x1="-30" y1="0" x2="-18" y2="0" stroke="#ef4444" stroke-width="2" />
+    <line x1="-30" y1="-10" x2="-30" y2="10" stroke="#ef4444" stroke-width="2" />
+    <line x1="-35" y1="-6" x2="-35" y2="6" stroke="#ef4444" stroke-width="1.5" />
+    <line x1="-40" y1="-2" x2="-40" y2="2" stroke="#ef4444" stroke-width="1.5" />
+    <text x="-7" y="44" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ef4444" text-anchor="middle">50Ω TERM</text>
+    <text x="-7" y="56" font-family="'Outfit', sans-serif" font-size="8.5" fill="#94a3b8" text-anchor="middle">Absorbs Echo</text>
+  </g>
+
+  <!-- 50-OHM TERMINATOR (RIGHT: x=740, y=260) -->
+  <g transform="translate(740, 260)">
+    <rect x="-4" y="-28" width="22" height="56" rx="5" fill="#180a0c" stroke="#ef4444" stroke-width="2.5" />
+    <circle cx="7" cy="0" r="4" fill="#ef4444" />
+    <!-- Grounding Symbol -->
+    <line x1="18" y1="0" x2="30" y2="0" stroke="#ef4444" stroke-width="2" />
+    <line x1="30" y1="-10" x2="30" y2="10" stroke="#ef4444" stroke-width="2" />
+    <line x1="35" y1="-6" x2="35" y2="6" stroke="#ef4444" stroke-width="1.5" />
+    <line x1="40" y1="-2" x2="40" y2="2" stroke="#ef4444" stroke-width="1.5" />
+    <text x="7" y="44" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ef4444" text-anchor="middle">50Ω TERM</text>
+    <text x="7" y="56" font-family="'Outfit', sans-serif" font-size="8.5" fill="#94a3b8" text-anchor="middle">Absorbs Echo</text>
+  </g>
+
+  <!-- DROP CABLES & BNC T-CONNECTORS -->
+  <!-- Station 1: Top (x=180, y=100) -->
+  <g>
+    <!-- Drop cable -->
+    <line x1="180" y1="260" x2="180" y2="135" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" />
+    <!-- BNC Tap on trunk -->
+    <circle cx="180" cy="260" r="8" fill="#031626" stroke="#38bdf8" stroke-width="2.5" />
+    <circle cx="180" cy="260" r="3" fill="#38bdf8" />
+    <text x="180" y="280" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#64748b" text-anchor="middle">BNC TAP 1</text>
+    <!-- Station Node 1 (Top) -->
+    <g transform="translate(180, 100)">
+      <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+      <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+      <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE 1</text>
+      <text y="-36" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Host Station A</text>
+      <text y="-24" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">10.0.0.1</text>
+    </g>
+  </g>
+
+  <!-- Station 2: Bottom (x=330, y=420) -->
+  <g>
+    <!-- Drop cable -->
+    <line x1="330" y1="260" x2="330" y2="385" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" />
+    <!-- BNC Tap on trunk -->
+    <circle cx="330" cy="260" r="8" fill="#031626" stroke="#38bdf8" stroke-width="2.5" />
+    <circle cx="330" cy="260" r="3" fill="#38bdf8" />
+    <text x="330" y="246" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#64748b" text-anchor="middle">BNC TAP 2</text>
+    <!-- Station Node 2 (Bottom) -->
+    <g transform="translate(330, 420)">
+      <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+      <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+      <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE 2</text>
+      <text y="40" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Host Station B</text>
+      <text y="52" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">10.0.0.2</text>
+    </g>
+  </g>
+
+  <!-- Station 3: Top (x=480, y=100) -->
+  <g>
+    <!-- Drop cable -->
+    <line x1="480" y1="260" x2="480" y2="135" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" />
+    <!-- BNC Tap on trunk -->
+    <circle cx="480" cy="260" r="8" fill="#031626" stroke="#38bdf8" stroke-width="2.5" />
+    <circle cx="480" cy="260" r="3" fill="#38bdf8" />
+    <text x="480" y="280" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#64748b" text-anchor="middle">BNC TAP 3</text>
+    <!-- Station Node 3 (Top) -->
+    <g transform="translate(480, 100)">
+      <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+      <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+      <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE 3</text>
+      <text y="-36" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Host Station C</text>
+      <text y="-24" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">10.0.0.3</text>
+    </g>
+  </g>
+
+  <!-- Station 4: Bottom (x=630, y=420) -->
+  <g>
+    <!-- Drop cable -->
+    <line x1="630" y1="260" x2="630" y2="385" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" />
+    <!-- BNC Tap on trunk -->
+    <circle cx="630" cy="260" r="8" fill="#031626" stroke="#38bdf8" stroke-width="2.5" />
+    <circle cx="630" cy="260" r="3" fill="#38bdf8" />
+    <text x="630" y="246" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#64748b" text-anchor="middle">BNC TAP 4</text>
+    <!-- Station Node 4 (Bottom) -->
+    <g transform="translate(630, 420)">
+      <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+      <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+      <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE 4</text>
+      <text y="40" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Host Station D</text>
+      <text y="52" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">10.0.0.4</text>
+    </g>
+  </g>
+
+  <!-- Bottom Annotation Bar -->
+  <text x="400" y="495" font-family="'Outfit', sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    Single Continuous 50Ω Coaxial Backbone Cable · Half-Duplex Broadcast · Drop Cables ≤ 0.5m
+  </text>
+</svg>

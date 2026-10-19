@@ -1,0 +1,259 @@
+/* ==========================================================================
+   NETWORK TOPOLOGIES SHOWCASE GALLERY - REDESIGNED PURE BLACK
+   ========================================================================== */
+
+.topologies-viewport {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  background-color: #000000;
+  color: #ffffff;
+  overflow-x: hidden;
+  padding-top: 100px; /* Space for persistent floating Navbar */
+  box-sizing: border-box;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+}
+
+/* ==========================================================================
+   MAIN CONTAINER & BREADCRUMB
+   ========================================================================== */
+
+.topologies-main-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 24px 100px 24px;
+  box-sizing: border-box;
+}
+
+.topologies-breadcrumb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.topologies-back-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  backdrop-filter: blur(8px);
+}
+
+.topologies-back-pill:hover {
+  background: rgba(0, 191, 99, 0.12);
+  border-color: rgba(0, 191, 99, 0.35);
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
+.topologies-sep {
+  color: #475569;
+  font-size: 13px;
+}
+
+.topologies-crumb-active {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   HERO SECTION
+   ========================================================================== */
+
+.topologies-hero-section {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto 44px auto;
+}
+
+.topologies-main-title {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  line-height: 1.15;
+}
+
+.topologies-title-gradient {
+  background: linear-gradient(135deg, #00bf63 0%, #10b981 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 25px rgba(0, 191, 99, 0.35));
+}
+
+.topologies-hero-subtitle {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   COMPACT CARDS GRID WITH HOLOCARD (REDUCED SIZE, NO IMAGES)
+   ========================================================================== */
+
+.topologies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  justify-content: center;
+}
+
+.topology-holo-wrapper {
+  background: #080a10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.topology-holo-wrapper:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 191, 99, 0.4);
+  background: #0c0f18;
+  box-shadow: 
+    0 16px 40px -10px rgba(0, 0, 0, 0.95),
+    0 0 25px rgba(0, 191, 99, 0.12);
+}
+
+.holo-card-center-stage {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+/* Emblem inside HoloCard */
+.topo-holo-emblem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.topo-emblem-icon-ring {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.topology-holo-wrapper:hover .topo-emblem-icon-ring {
+  transform: scale(1.08);
+}
+
+.topo-holo-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #e2e8f0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Metadata Block below HoloCard */
+.topology-info-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.topology-card-name {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.topology-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: 0;
+  min-height: 38px;
+}
+
+.topology-launch-btn {
+  margin-top: 8px;
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(0, 191, 99, 0.1);
+  border: 1px solid rgba(0, 191, 99, 0.28);
+  color: #00bf63;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.topology-launch-btn:hover {
+  background: #00bf63;
+  color: #000000;
+  border-color: #00bf63;
+  box-shadow: 0 4px 16px rgba(0, 191, 99, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   RESPONSIVENESS
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .topologies-viewport {
+    padding-top: 86px;
+  }
+  .topologies-main-title {
+    font-size: 30px;
+  }
+  .topologies-grid {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}

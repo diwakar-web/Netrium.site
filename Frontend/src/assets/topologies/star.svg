@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <defs>
+    <radialGradient id="starHubGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00bf63" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#00bf63" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#00bf63" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="starCableGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bf63" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <filter id="starNodeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ambient Radiating Orbit Rings (Transparent Background) -->
+  <g stroke="#00bf63" fill="none" opacity="0.15">
+    <circle cx="400" cy="260" r="115" stroke-dasharray="4 6" />
+    <circle cx="400" cy="260" r="185" stroke-dasharray="6 8" />
+    <circle cx="400" cy="260" r="245" stroke-dasharray="8 10" />
+  </g>
+
+  <!-- Star Conduits: Full-Duplex Dedicated Links from Central Switch (400, 260) -->
+  <g stroke="url(#starCableGrad)" stroke-width="3" stroke-linecap="round">
+    <!-- Node 1 (Top): (400, 75) -->
+    <line x1="400" y1="260" x2="400" y2="75" stroke-dasharray="8 6" />
+    <!-- Node 2 (Top-Right): (620, 145) -->
+    <line x1="400" y1="260" x2="620" y2="145" stroke-dasharray="8 6" />
+    <!-- Node 3 (Bottom-Right): (620, 375) -->
+    <line x1="400" y1="260" x2="620" y2="375" stroke-dasharray="8 6" />
+    <!-- Node 4 (Bottom): (400, 445) -->
+    <line x1="400" y1="260" x2="400" y2="445" stroke-dasharray="8 6" />
+    <!-- Node 5 (Bottom-Left): (180, 375) -->
+    <line x1="400" y1="260" x2="180" y2="375" stroke-dasharray="8 6" />
+    <!-- Node 6 (Top-Left): (180, 145) -->
+    <line x1="400" y1="260" x2="180" y2="145" stroke-dasharray="8 6" />
+  </g>
+
+  <!-- Bidirectional Signal Pulse Dots along conduits -->
+  <g fill="#38bdf8">
+    <circle cx="400" cy="150" r="4" filter="url(#starNodeGlow)" />
+    <circle cx="530" cy="190" r="4" filter="url(#starNodeGlow)" />
+    <circle cx="530" cy="330" r="4" filter="url(#starNodeGlow)" />
+    <circle cx="400" cy="370" r="4" filter="url(#starNodeGlow)" />
+    <circle cx="270" cy="330" r="4" filter="url(#starNodeGlow)" />
+    <circle cx="270" cy="190" r="4" filter="url(#starNodeGlow)" />
+  </g>
+
+  <!-- Central Switch Core Halo -->
+  <circle cx="400" cy="260" r="85" fill="url(#starHubGlow)" />
+
+  <!-- Central Switch Body (400, 260) -->
+  <g transform="translate(400, 260)" filter="url(#starNodeGlow)">
+    <circle cx="0" cy="0" r="48" fill="#0c1815" stroke="#00bf63" stroke-width="2.5" />
+    <circle cx="0" cy="0" r="38" fill="#08100e" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
+    <!-- Switch Port Indicator Matrix -->
+    <g fill="#00bf63">
+      <circle cx="-16" cy="-12" r="3" />
+      <circle cx="0" cy="-12" r="3" />
+      <circle cx="16" cy="-12" r="3" />
+      <circle cx="-16" cy="12" r="3" />
+      <circle cx="0" cy="12" r="3" />
+      <circle cx="16" cy="12" r="3" />
+    </g>
+    <!-- Switch Label -->
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">SWITCH</text>
+    <text y="68" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#00bf63" text-anchor="middle">CENTRAL L2/L3 SWITCH</text>
+    <text y="82" font-family="'JetBrains Mono', monospace" font-size="9" fill="#94a3b8" text-anchor="middle">Full-Duplex CAM Backplane</text>
+  </g>
+
+  <!-- Peripheral Node 1 (Top): Server S-1 -->
+  <g transform="translate(400, 75)">
+    <circle cx="0" cy="0" r="30" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="24" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">SRV-1</text>
+    <text y="-38" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">DNS / App Server</text>
+    <text y="-25" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">192.168.1.10</text>
+  </g>
+
+  <!-- Peripheral Node 2 (Top-Right): Workstation WS-2 -->
+  <g transform="translate(620, 145)">
+    <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">WS-2</text>
+    <text x="36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="start">Workstation 2</text>
+    <text x="36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="start">192.168.1.11</text>
+  </g>
+
+  <!-- Peripheral Node 3 (Bottom-Right): Terminal T-3 -->
+  <g transform="translate(620, 375)">
+    <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">T-3</text>
+    <text x="36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="start">Terminal 3</text>
+    <text x="36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="start">192.168.1.12</text>
+  </g>
+
+  <!-- Peripheral Node 4 (Bottom): Storage NAS-4 -->
+  <g transform="translate(400, 445)">
+    <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">NAS-4</text>
+    <text y="42" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Storage Array</text>
+    <text y="54" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="middle">192.168.1.13</text>
+  </g>
+
+  <!-- Peripheral Node 5 (Bottom-Left): Workstation WS-5 -->
+  <g transform="translate(180, 375)">
+    <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">WS-5</text>
+    <text x="-36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">Workstation 5</text>
+    <text x="-36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="end">192.168.1.14</text>
+  </g>
+
+  <!-- Peripheral Node 6 (Top-Left): Printer / IoT P-6 -->
+  <g transform="translate(180, 145)">
+    <circle cx="0" cy="0" r="28" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#060c14" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">IOT-6</text>
+    <text x="-36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">Network Gateway</text>
+    <text x="-36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#38bdf8" text-anchor="end">192.168.1.15</text>
+  </g>
+</svg>

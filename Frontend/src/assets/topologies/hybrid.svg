@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <defs>
+    <radialGradient id="hybridCenterGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="hybridBridgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00bf63" />
+      <stop offset="50%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="hybridGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Zone Boundary Outlines (Transparent Background) -->
+  <g fill="none" stroke-width="1.2" stroke-dasharray="6 6">
+    <!-- Zone A (Left): Star Cluster -->
+    <rect x="40" y="70" width="280" height="380" rx="16" stroke="rgba(0, 191, 99, 0.3)" />
+    <!-- Zone B (Right): Mesh Cluster -->
+    <rect x="480" y="70" width="280" height="380" rx="16" stroke="rgba(245, 158, 11, 0.3)" />
+  </g>
+
+  <!-- Zone Labels -->
+  <text x="55" y="95" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#00bf63" letter-spacing="1">ZONE A // OFFICE STAR LAN</text>
+  <text x="745" y="95" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="end" letter-spacing="1">ZONE B // DATA CENTER MESH</text>
+
+  <!-- Bridge Conduits between Star Switch, Central Gateway, and Mesh Fabric -->
+  <g stroke="url(#hybridBridgeGrad)" stroke-width="4.5" stroke-linecap="round">
+    <line x1="220" y1="260" x2="400" y2="260" />
+    <line x1="400" y1="260" x2="580" y2="260" />
+  </g>
+
+  <!-- ZONE A: STAR CLUSTER -->
+  <!-- Star Switch at (180, 260) -->
+  <g stroke="#00bf63" stroke-width="2.5" stroke-dasharray="6 4">
+    <line x1="180" y1="260" x2="100" y2="150" />
+    <line x1="180" y1="260" x2="100" y2="370" />
+    <line x1="180" y1="260" x2="260" y2="150" />
+  </g>
+
+  <!-- Star Switch Body -->
+  <g transform="translate(180, 260)">
+    <circle cx="0" cy="0" r="32" fill="#061a12" stroke="#00bf63" stroke-width="2.5" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">SW-A</text>
+    <text y="44" font-family="'Outfit', sans-serif" font-size="10" font-weight="700" fill="#00bf63" text-anchor="middle">Star Switch A</text>
+  </g>
+
+  <!-- Star Nodes -->
+  <g transform="translate(100, 150)">
+    <circle cx="0" cy="0" r="22" fill="#09141d" stroke="#38bdf8" stroke-width="1.8" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle">PC-1</text>
+  </g>
+  <g transform="translate(100, 370)">
+    <circle cx="0" cy="0" r="22" fill="#09141d" stroke="#38bdf8" stroke-width="1.8" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle">PC-2</text>
+  </g>
+  <g transform="translate(260, 150)">
+    <circle cx="0" cy="0" r="22" fill="#09141d" stroke="#38bdf8" stroke-width="1.8" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle">PC-3</text>
+  </g>
+
+  <!-- CENTER: MULTILAYER BOUNDARY GATEWAY (400, 260) -->
+  <circle cx="400" cy="260" r="60" fill="url(#hybridCenterGlow)" />
+  <g transform="translate(400, 260)" filter="url(#hybridGlow)">
+    <rect x="-38" y="-38" width="76" height="76" rx="16" fill="#1f091c" stroke="#ec4899" stroke-width="2.5" />
+    <!-- Gateway Cross Matrix -->
+    <path d="M-18,-18 L18,18 M18,-18 L-18,18" stroke="#ffffff" stroke-width="2" />
+    <text y="52" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#ec4899" text-anchor="middle">BOUNDARY GATEWAY</text>
+    <text y="66" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#94a3b8" text-anchor="middle">L3 Multi-Protocol Bridge</text>
+  </g>
+
+  <!-- ZONE B: MESH CLUSTER -->
+  <!-- 3 Interconnected Mesh Compute Nodes -->
+  <!-- Mesh Node M1: (620, 150)
+       Mesh Node M2: (700, 310)
+       Mesh Node M3: (540, 350) -->
+  <g stroke="#f59e0b" stroke-width="2.5">
+    <!-- Fully interconnected triangular mesh -->
+    <line x1="620" y1="150" x2="700" y2="310" />
+    <line x1="700" y1="310" x2="540" y2="350" />
+    <line x1="540" y1="350" x2="620" y2="150" />
+    <!-- Link from gateway to mesh nodes -->
+    <line x1="438" y1="260" x2="540" y2="350" stroke="#ec4899" stroke-dasharray="4 4" />
+    <line x1="438" y1="260" x2="620" y2="150" stroke="#ec4899" stroke-dasharray="4 4" />
+  </g>
+
+  <!-- Mesh Node Bodies -->
+  <g transform="translate(620, 150)">
+    <circle cx="0" cy="0" r="26" fill="#1c1306" stroke="#f59e0b" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">SRV-1</text>
+    <text y="-32" font-family="'Outfit', sans-serif" font-size="10" font-weight="700" fill="#e2e8f0" text-anchor="middle">Compute Node</text>
+  </g>
+  <g transform="translate(700, 310)">
+    <circle cx="0" cy="0" r="26" fill="#1c1306" stroke="#f59e0b" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">SRV-2</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10" font-weight="700" fill="#e2e8f0" text-anchor="middle">Database Node</text>
+  </g>
+  <g transform="translate(540, 350)">
+    <circle cx="0" cy="0" r="26" fill="#1c1306" stroke="#f59e0b" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">SRV-3</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10" font-weight="700" fill="#e2e8f0" text-anchor="middle">Storage Node</text>
+  </g>
+
+  <!-- Bottom Annotation Bar -->
+  <text x="400" y="495" font-family="'Outfit', sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    Hybrid Star-Mesh Architecture · Inter-Zone Multilayer Gateway · Independent Failure Containment
+  </text>
+</svg>

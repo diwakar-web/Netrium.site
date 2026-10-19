@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <defs>
+    <radialGradient id="ringCenterGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.25" />
+      <stop offset="70%" stop-color="#c084fc" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="ringPrimaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc" />
+      <stop offset="50%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <filter id="ringGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Center Ambient Glow (Transparent Background) -->
+  <circle cx="400" cy="260" r="160" fill="url(#ringCenterGlow)" />
+
+  <!-- Secondary Counter-Rotating Failover Ring (FDDI/SONET Redundancy, r=210) -->
+  <circle cx="400" cy="260" r="215" fill="none" stroke="rgba(192, 132, 252, 0.2)" stroke-width="2" stroke-dasharray="6 8" />
+  <text x="400" y="36" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#a855f7" text-anchor="middle" letter-spacing="1">SECONDARY COUNTER-ROTATING RING (AUTOMATIC WRAP-AROUND FAILOVER)</text>
+
+  <!-- Primary Unbroken Data Highway Loop (r=170) -->
+  <circle cx="400" cy="260" r="170" fill="none" stroke="url(#ringPrimaryGrad)" stroke-width="4.5" filter="url(#ringGlow)" />
+
+  <!-- Directional Flow Arrows around Primary Loop -->
+  <g fill="#c084fc">
+    <!-- Top-Right arrow -->
+    <polygon points="535,160 545,150 535,142" />
+    <!-- Bottom-Right arrow -->
+    <polygon points="545,360 535,370 545,378" />
+    <!-- Bottom-Left arrow -->
+    <polygon points="265,360 255,370 265,378" />
+    <!-- Top-Left arrow -->
+    <polygon points="255,160 265,150 255,142" />
+  </g>
+
+  <!-- Circulating Electronic Token (3-Byte Frame) between Node A and B -->
+  <g transform="translate(485, 125)">
+    <rect x="-38" y="-14" width="76" height="28" rx="6" fill="#1e102e" stroke="#ec4899" stroke-width="2" filter="url(#ringGlow)" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">TOKEN [IDLE]</text>
+    <text y="-20" font-family="'Outfit', sans-serif" font-size="9" font-weight="700" fill="#ec4899" text-anchor="middle">Permission to Transmit</text>
+  </g>
+
+  <!-- 5 Circular Node Stations (Symmetric 72° Angles) -->
+  <!-- Center: (400, 260), Radius: 170 -->
+  <!-- Station A (Top: 0° / 90° from horizontal): (400, 90) -->
+  <g transform="translate(400, 90)">
+    <circle cx="0" cy="0" r="28" fill="#130922" stroke="#c084fc" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#0c0514" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE A</text>
+    <text y="-36" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="middle">Active Repeater A</text>
+    <text y="-24" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#c084fc" text-anchor="middle">MAC: 00:00:AA</text>
+  </g>
+
+  <!-- Station B (Top-Right: 72° from top -> 18° from right): x = 400 + 170*cos(18°) = 562, y = 260 - 170*sin(18°) = 207 -->
+  <g transform="translate(562, 207)">
+    <circle cx="0" cy="0" r="28" fill="#130922" stroke="#c084fc" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#0c0514" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE B</text>
+    <text x="36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="start">Active Repeater B</text>
+    <text x="36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#c084fc" text-anchor="start">MAC: 00:00:BB</text>
+  </g>
+
+  <!-- Station C (Bottom-Right: 54° below right): x = 400 + 170*cos(54°) = 500, y = 260 + 170*sin(54°) = 398 -->
+  <g transform="translate(500, 398)">
+    <circle cx="0" cy="0" r="28" fill="#130922" stroke="#c084fc" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#0c0514" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE C</text>
+    <text x="36" y="-4" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="start">Active Repeater C</text>
+    <text x="36" y="10" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#c084fc" text-anchor="start">MAC: 00:00:CC</text>
+  </g>
+
+  <!-- Station D (Bottom-Left: 54° below left): x = 400 - 170*cos(54°) = 300, y = 260 + 170*sin(54°) = 398 -->
+  <g transform="translate(300, 398)">
+    <circle cx="0" cy="0" r="28" fill="#130922" stroke="#c084fc" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#0c0514" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE D</text>
+    <text x="-36" y="-4" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">Active Repeater D</text>
+    <text x="-36" y="10" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#c084fc" text-anchor="end">MAC: 00:00:DD</text>
+  </g>
+
+  <!-- Station E (Top-Left: 18° above left): x = 400 - 170*cos(18°) = 238, y = 260 - 170*sin(18°) = 207 -->
+  <g transform="translate(238, 207)">
+    <circle cx="0" cy="0" r="28" fill="#130922" stroke="#c084fc" stroke-width="2" />
+    <circle cx="0" cy="0" r="22" fill="#0c0514" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">NODE E</text>
+    <text x="-36" y="-6" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">Active Repeater E</text>
+    <text x="-36" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#c084fc" text-anchor="end">MAC: 00:00:EE</text>
+  </g>
+
+  <!-- Center Status Emblem -->
+  <text x="400" y="255" font-family="'Outfit', sans-serif" font-size="13" font-weight="800" fill="#ffffff" text-anchor="middle">TOKEN RING HIGHWAY</text>
+  <text x="400" y="272" font-family="'JetBrains Mono', monospace" font-size="10" fill="#c084fc" text-anchor="middle">Deterministic Zero-Collision Loop</text>
+  <text x="400" y="495" font-family="'Outfit', sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    IEEE 802.5 / FDDI Architecture · Single Directional Token Passing · Bounded Rotation Latency
+  </text>
+</svg>

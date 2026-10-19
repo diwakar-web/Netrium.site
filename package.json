@@ -1,0 +1,13 @@
+{
+  "name": "netrium-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Netrium Interactive Systems Laboratory Monorepo",
+  "scripts": {
+    "dev": "npm run dev --prefix Backend",
+    "dev:backend": "npm run dev --prefix Backend",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "start": "npm start --prefix Backend",
+    "build": "npm run build --prefix Frontend"
+  }
+}

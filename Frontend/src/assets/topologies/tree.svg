@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <defs>
+    <radialGradient id="treeRootGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="treeTrunkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <filter id="treeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Horizontal Tier Boundary Guidelines (Transparent Background) -->
+  <g stroke="rgba(16, 185, 129, 0.15)" stroke-width="1" stroke-dasharray="6 8">
+    <line x1="40" y1="140" x2="760" y2="140" />
+    <line x1="40" y1="315" x2="760" y2="315" />
+  </g>
+  <text x="50" y="132" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#10b981" letter-spacing="1">TIER 1 // CORE LAYER</text>
+  <text x="50" y="307" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#10b981" letter-spacing="1">TIER 2 // DISTRIBUTION LAYER</text>
+  <text x="50" y="340" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#10b981" letter-spacing="1">TIER 3 // ACCESS WORKGROUP LAYER</text>
+
+  <!-- Heavy Fiber Trunks (Root 400, 75 to Tier 2: 240, 225 & 560, 225) -->
+  <g stroke="url(#treeTrunkGrad)" stroke-width="5" stroke-linecap="round">
+    <line x1="400" y1="75" x2="240" y2="225" />
+    <line x1="400" y1="75" x2="560" y2="225" />
+  </g>
+
+  <!-- Distribution to Access Links -->
+  <g stroke="#34d399" stroke-width="2.5" stroke-dasharray="6 4" stroke-linecap="round">
+    <!-- From Dist Switch 1 (240, 225) -->
+    <line x1="240" y1="225" x2="150" y2="400" />
+    <line x1="240" y1="225" x2="330" y2="400" />
+    <!-- From Dist Switch 2 (560, 225) -->
+    <line x1="560" y1="225" x2="470" y2="400" />
+    <line x1="560" y1="225" x2="650" y2="400" />
+  </g>
+
+  <!-- Trunk Labels -->
+  <text x="300" y="145" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#a7f3d0" text-anchor="middle">10G Fiber Trunk (802.1Q)</text>
+  <text x="500" y="145" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#a7f3d0" text-anchor="middle">10G Fiber Trunk (802.1Q)</text>
+
+  <!-- TIER 1: ROOT CORE SWITCH (400, 75) -->
+  <circle cx="400" cy="75" r="55" fill="url(#treeRootGlow)" />
+  <g transform="translate(400, 75)" filter="url(#treeGlow)">
+    <circle cx="0" cy="0" r="38" fill="#061c14" stroke="#10b981" stroke-width="2.5" />
+    <circle cx="0" cy="0" r="28" fill="#020d09" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">ROOT</text>
+    <text y="-48" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#10b981" text-anchor="middle">CORE ROOT SWITCH</text>
+    <text y="-35" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#94a3b8" text-anchor="middle">High-Speed Campus Backbone Apex</text>
+  </g>
+
+  <!-- TIER 2: DISTRIBUTION SWITCH 1 (240, 225) -->
+  <g transform="translate(240, 225)">
+    <circle cx="0" cy="0" r="32" fill="#061c14" stroke="#10b981" stroke-width="2" />
+    <circle cx="0" cy="0" r="24" fill="#020d09" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">DIST-A</text>
+    <text x="-40" y="-4" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">Building A Hub</text>
+    <text x="-40" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#10b981" text-anchor="end">VLAN 10-20</text>
+  </g>
+
+  <!-- TIER 2: DISTRIBUTION SWITCH 2 (560, 225) -->
+  <g transform="translate(560, 225)">
+    <circle cx="0" cy="0" r="32" fill="#061c14" stroke="#10b981" stroke-width="2" />
+    <circle cx="0" cy="0" r="24" fill="#020d09" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">DIST-B</text>
+    <text x="40" y="-4" font-family="'Outfit', sans-serif" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="start">Building B Hub</text>
+    <text x="40" y="8" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#10b981" text-anchor="start">VLAN 30-40</text>
+  </g>
+
+  <!-- TIER 3: LEAF STATIONS -->
+  <!-- Leaf 1 (150, 400) -->
+  <g transform="translate(150, 400)">
+    <circle cx="0" cy="0" r="26" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">WS-A1</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10.5" font-weight="700" fill="#e2e8f0" text-anchor="middle">Workstation A1</text>
+  </g>
+
+  <!-- Leaf 2 (330, 400) -->
+  <g transform="translate(330, 400)">
+    <circle cx="0" cy="0" r="26" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">WS-A2</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10.5" font-weight="700" fill="#e2e8f0" text-anchor="middle">Workstation A2</text>
+  </g>
+
+  <!-- Leaf 3 (470, 400) -->
+  <g transform="translate(470, 400)">
+    <circle cx="0" cy="0" r="26" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">WS-B1</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10.5" font-weight="700" fill="#e2e8f0" text-anchor="middle">Workstation B1</text>
+  </g>
+
+  <!-- Leaf 4 (650, 400) -->
+  <g transform="translate(650, 400)">
+    <circle cx="0" cy="0" r="26" fill="#09141d" stroke="#38bdf8" stroke-width="2" />
+    <text y="4" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">SRV-B2</text>
+    <text y="38" font-family="'Outfit', sans-serif" font-size="10.5" font-weight="700" fill="#e2e8f0" text-anchor="middle">Server B2</text>
+  </g>
+
+  <!-- Bottom Annotation Bar -->
+  <text x="400" y="495" font-family="'Outfit', sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    Hierarchical Cisco 3-Layer Design · Root Core Apex · Departmental VLAN Isolation · L = N - 1
+  </text>
+</svg>
