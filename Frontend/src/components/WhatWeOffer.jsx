@@ -249,6 +249,10 @@ export default function WhatWeOffer({ onOpenFacility }) {
                     onClick={() => {
                       if (section.category === 'NETWORK TOPOLOGIES' || section.facilityId === 'multi-mesh') {
                         navigate('/topologies');
+                      } else if (section.category === 'CONTENT DELIVERY NETWORK' || section.facilityId === 'packet-trace' || section.facilityId === 'cdn') {
+                        navigate('/cdn');
+                      } else if (section.category === 'DATA STRUCTURES & ALGORITHMS' || section.facilityId === 'dsa-algo' || section.facilityId === 'dsa') {
+                        navigate('/dsa');
                       } else if (onOpenFacility) {
                         onOpenFacility(section.facilityId);
                       }

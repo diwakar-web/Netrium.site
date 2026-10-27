@@ -20,6 +20,10 @@ import ProfilePage from './pages/ProfilePage'
 import MyLabsPage from './pages/MyLabsPage'
 import TopologiesPage from './pages/TopologiesPage'
 import TopologyLabPage from './pages/TopologyLabPage'
+import CdnPage from './pages/CdnPage'
+import DsaPage from './pages/DsaPage'
+import DsaLabPage from './pages/DsaLabPage'
+import ScrollToTop from './components/ScrollToTop'
 import './App.css'
 
 function LandingHome() {
@@ -37,6 +41,18 @@ function LandingHome() {
   }, [location.state])
 
   const handleOpenFacility = (facilityId) => {
+    if (facilityId === 'multi-mesh' || facilityId === 'topologies') {
+      navigate('/topologies')
+      return
+    }
+    if (facilityId === 'packet-trace' || facilityId === 'cdn') {
+      navigate('/cdn')
+      return
+    }
+    if (facilityId === 'dsa-algo' || facilityId === 'dsa') {
+      navigate('/dsa')
+      return
+    }
     setActiveFacility(facilityId)
   }
 
@@ -155,15 +171,21 @@ function LandingHome() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<AuthPage />} />
-      <Route path="/signup" element={<AuthPage />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/my-labs" element={<MyLabsPage />} />
-      <Route path="/topologies" element={<TopologiesPage />} />
-      <Route path="/topologies/:topologyId" element={<TopologyLabPage />} />
-      <Route path="*" element={<LandingHome />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/signup" element={<AuthPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/my-labs" element={<MyLabsPage />} />
+        <Route path="/topologies" element={<TopologiesPage />} />
+        <Route path="/topologies/:topologyId" element={<TopologyLabPage />} />
+        <Route path="/cdn" element={<CdnPage />} />
+        <Route path="/dsa" element={<DsaPage />} />
+        <Route path="/dsa/:dsaId" element={<DsaLabPage />} />
+        <Route path="*" element={<LandingHome />} />
+      </Routes>
+    </>
   )
 }

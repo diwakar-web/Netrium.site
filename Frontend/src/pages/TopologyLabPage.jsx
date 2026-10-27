@@ -71,6 +71,13 @@ export default function TopologyLabPage() {
   const currentTheory = TOPOLOGY_THEORY_DATA[currentTopoKey] || TOPOLOGY_THEORY_DATA.star;
   const currentScenario = TOPOLOGY_SCENARIOS[currentTopoKey] || TOPOLOGY_SCENARIOS.star;
 
+  // Scroll to absolute top on mount or topology change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentTopoKey]);
+
   // Subheader Tabs: 'theories' | 'practical' | 'more-practical'
   const [activeTab, setActiveTab] = useState('theories');
 
@@ -101,6 +108,12 @@ export default function TopologyLabPage() {
   const [currentHop, setCurrentHop] = useState({ from: 'node-b', to: 'node-a', step: 1, totalSteps: 2 });
   const animRef = useRef(null);
   const lastTimeRef = useRef(null);
+
+  // Live ref for nodes to prevent stale closures in animation frame loops
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   // More Practical: Fault Injection & Traffic Modes
   const [trafficMode, setTrafficMode] = useState('unicast'); // 'unicast' | 'broadcast' | 'collision'
@@ -177,15 +190,32 @@ export default function TopologyLabPage() {
 
   // Toggle node online / offline (for failure simulation)
   const handleToggleNodeHealth = (nodeId) => {
-    setNodes((prev) =>
-      prev.map((n) => {
-        if (n.id === nodeId) {
-          const newStatus = n.status === 'online' ? 'offline' : 'online';
-          addLog(`Node ${n.label} is now ${newStatus.toUpperCase()}`, newStatus === 'offline' ? 'error' : 'success');
-          return { ...n, status: newStatus };
+    const targetNode = nodes.find((n) => n.id === nodeId);
+    const newStatus = targetNode?.status === 'online' ? 'offline' : 'online';
+    const label = targetNode?.label || nodeId;
+
+    addLog(`Node ${label} is now ${newStatus === 'offline' ? 'DOWN (OFFLINE)' : 'ACTIVE (ONLINE)'}`, newStatus === 'offline' ? 'error' : 'success');
+
+    // If node went offline and simulation is running, abort transmission immediately
+    if (newStatus === 'offline' && isPlaying) {
+      if (nodeId === sourceNodeId) {
+        handleStopSimulation();
+        addLog(`TRANSMISSION ABORTED: Source Node ${label} went DOWN! Inactive nodes cannot send packets.`, 'error');
+      } else if (nodeId === targetNodeId) {
+        handleStopSimulation();
+        addLog(`TRANSMISSION ABORTED: Destination Node ${label} went DOWN!`, 'error');
+      } else {
+        const hops = getRouteHops();
+        const isOnRoute = hops.some((h) => h.from === nodeId || h.to === nodeId);
+        if (isOnRoute) {
+          handleStopSimulation();
+          addLog(`TRANSMISSION INTERRUPTED: Intermediate Node ${label} went DOWN! Path severed.`, 'error');
         }
-        return n;
-      })
+      }
+    }
+
+    setNodes((prev) =>
+      prev.map((n) => (n.id === nodeId ? { ...n, status: newStatus } : n))
     );
   };
 
@@ -194,12 +224,13 @@ export default function TopologyLabPage() {
   // ==========================================
 
   // Determine path hops based on topology
-  const getRouteHops = () => {
+  const getRouteHops = (customNodes) => {
+    const currentNodes = customNodes || nodesRef.current || nodes;
     const src = sourceNodeId;
     const dst = targetNodeId;
     if (src === dst) return [];
 
-    const hubNode = nodes.find((n) => n.role === 'hub') || nodes[0];
+    const hubNode = currentNodes.find((n) => n.role === 'hub') || currentNodes[0];
 
     if (currentTopoKey === 'star') {
       // Star Topology Route:
@@ -215,17 +246,55 @@ export default function TopologyLabPage() {
     }
 
     if (currentTopoKey === 'ring') {
-      // Ring Topology Route: Unidirectional along the loop
-      const srcIdx = nodes.findIndex((n) => n.id === src);
-      const dstIdx = nodes.findIndex((n) => n.id === dst);
-      const hops = [];
-      let curr = srcIdx;
-      while (curr !== dstIdx) {
-        const next = (curr + 1) % nodes.length;
-        hops.push({ from: nodes[curr].id, to: nodes[next].id });
-        curr = next;
+      // Ring Topology Route: Dual Counter-Rotating / Resilient Self-Healing Architecture
+      const srcIdx = currentNodes.findIndex((n) => n.id === src);
+      const dstIdx = currentNodes.findIndex((n) => n.id === dst);
+      if (srcIdx === -1 || dstIdx === -1) return [];
+
+      const n = currentNodes.length;
+
+      // Direction 1: Clockwise (CW)
+      const hopsCW = [];
+      let currCW = srcIdx;
+      while (currCW !== dstIdx) {
+        const nextCW = (currCW + 1) % n;
+        hopsCW.push({ from: currentNodes[currCW].id, to: currentNodes[nextCW].id });
+        currCW = nextCW;
       }
-      return hops;
+
+      // Direction 2: Counter-Clockwise (CCW)
+      const hopsCCW = [];
+      let currCCW = srcIdx;
+      while (currCCW !== dstIdx) {
+        const nextCCW = (currCCW - 1 + n) % n;
+        hopsCCW.push({ from: currentNodes[currCCW].id, to: currentNodes[nextCCW].id });
+        currCCW = nextCCW;
+      }
+
+      // Check if a path contains any offline nodes along the route
+      const isPathBlockedByOfflineNode = (hopsList) => {
+        return hopsList.some((h) => {
+          const toNode = currentNodes.find((n) => n.id === h.to);
+          const fromNode = currentNodes.find((n) => n.id === h.from);
+          return (toNode && toNode.status === 'offline') || (fromNode && fromNode.status === 'offline');
+        });
+      };
+
+      const cwBlocked = isPathBlockedByOfflineNode(hopsCW);
+      const ccwBlocked = isPathBlockedByOfflineNode(hopsCCW);
+
+      // Resilient Self-Healing Routing:
+      // 1. If one direction is healthy and the other is severed, route via the healthy direction
+      if (!cwBlocked && ccwBlocked) return hopsCW;
+      if (!ccwBlocked && cwBlocked) return hopsCCW;
+
+      // 2. If both directions are healthy (or both are severed):
+      // Prefer the shortest path (minimum hop count)
+      if (hopsCW.length <= hopsCCW.length) {
+        return hopsCW;
+      } else {
+        return hopsCCW;
+      }
     }
 
     if (currentTopoKey === 'bus') {
@@ -340,19 +409,52 @@ export default function TopologyLabPage() {
       addLog('Source and destination cannot be the same node!', 'warning');
       return;
     }
-    const srcNode = nodes.find((n) => n.id === sourceNodeId);
-    const dstNode = nodes.find((n) => n.id === targetNodeId);
+    const currentNodes = nodesRef.current || nodes;
+    const srcNode = currentNodes.find((n) => n.id === sourceNodeId);
+    const dstNode = currentNodes.find((n) => n.id === targetNodeId);
 
     if (srcNode?.status === 'offline') {
-      addLog(`Cannot transmit: Source node ${srcNode.label} is OFFLINE!`, 'error');
+      addLog(`Cannot transmit: Source node ${srcNode.label} is DOWN/OFFLINE! Inactive nodes cannot send packets.`, 'error');
       return;
     }
     if (dstNode?.status === 'offline') {
-      addLog(`Warning: Destination node ${dstNode.label} is OFFLINE!`, 'warning');
+      addLog(`Cannot transmit: Destination node ${dstNode.label} is DOWN/OFFLINE! Packets cannot be delivered to an inactive node.`, 'error');
+      return;
     }
 
-    const hops = getRouteHops();
+    // Check Star Central Hub
+    if (currentTopoKey === 'star') {
+      const hub = currentNodes.find((n) => n.role === 'hub') || currentNodes[0];
+      if (hub.status === 'offline' && sourceNodeId !== hub.id && targetNodeId !== hub.id) {
+        addLog(`Cannot transmit: Central Hub (${hub.label}) is DOWN! All star connections are inactive.`, 'error');
+        return;
+      }
+    }
+
+    // Check Tree Root
+    if (currentTopoKey === 'tree') {
+      const root = currentNodes[0];
+      if (root?.status === 'offline' && sourceNodeId !== root.id && targetNodeId !== root.id) {
+        addLog(`Cannot transmit: Root Core Switch (${root.label}) is DOWN! Hierarchy is disconnected.`, 'error');
+        return;
+      }
+    }
+
+    const hops = getRouteHops(currentNodes);
     if (hops.length === 0) return;
+
+    // Check if any intermediate hop along the path is offline
+    const deadHop = hops.find((h) => {
+      const toNode = currentNodes.find((n) => n.id === h.to);
+      const fromNode = currentNodes.find((n) => n.id === h.from);
+      return (toNode && toNode.status === 'offline') || (fromNode && fromNode.status === 'offline');
+    });
+
+    if (deadHop) {
+      const deadNode = currentNodes.find((n) => (n.id === deadHop.to || n.id === deadHop.from) && n.status === 'offline');
+      addLog(`Cannot route packet: Node ${deadNode?.label || 'Intermediate'} along the path is DOWN!`, 'error');
+      return;
+    }
 
     setIsPlaying(true);
     setIsPaused(false);
@@ -360,7 +462,32 @@ export default function TopologyLabPage() {
     setAnimProgress(0);
     lastTimeRef.current = performance.now();
 
-    addLog(`INITIATED CONTINUOUS STREAM: ${srcNode?.label} ➔ ${dstNode?.label} [${currentTopo.name.toUpperCase()}]`, 'success');
+    // Log dual-ring failover notice if alternate route was engaged
+    if (currentTopoKey === 'ring') {
+      const srcIdx = currentNodes.findIndex((n) => n.id === sourceNodeId);
+      const dstIdx = currentNodes.findIndex((n) => n.id === targetNodeId);
+      const n = currentNodes.length;
+      let currCW = srcIdx;
+      const cwHops = [];
+      while (currCW !== dstIdx) {
+        const nextCW = (currCW + 1) % n;
+        cwHops.push({ from: currentNodes[currCW].id, to: currentNodes[nextCW].id });
+        currCW = nextCW;
+      }
+      const isCWBlocked = cwHops.some(h => {
+        const toN = currentNodes.find(node => node.id === h.to);
+        return toN && toN.status === 'offline';
+      });
+      if (isCWBlocked && hops.length > 0) {
+        const intermediates = hops.slice(0, -1).map(h => {
+          const nodeObj = currentNodes.find(n => n.id === h.to);
+          return nodeObj?.label || h.to;
+        }).filter(Boolean);
+        addLog(`DUAL-RING FAILOVER ACTIVE: Primary clockwise route blocked by offline node. Rerouted counter-clockwise via Node ${intermediates.join(', ') || 'alternate arc'}.`, 'warning');
+      }
+    }
+
+    addLog(`INITIATED CONTINUOUS STREAM: ${srcNode?.label} -> ${dstNode?.label} [${currentTopo.name.toUpperCase()}]`, 'success');
   };
 
   const handlePauseSimulation = () => {
@@ -393,24 +520,72 @@ export default function TopologyLabPage() {
       const delta = time - lastTimeRef.current;
       lastTimeRef.current = time;
 
+      const currentNodes = nodesRef.current || nodes;
+
+      // Real-time sanity check: verify source is still online
+      const currentSrc = currentNodes.find((n) => n.id === sourceNodeId);
+      if (currentSrc?.status === 'offline') {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setAnimProgress(0);
+        if (animRef.current) cancelAnimationFrame(animRef.current);
+        addLog(`TRANSMISSION HALTED: Source Node ${currentSrc.label} is DOWN and cannot send packets!`, 'error');
+        return;
+      }
+
       setAnimProgress((prev) => {
         const next = prev + delta / stepDuration;
         if (next >= 1) {
           // Hop finished
           const hops = getRouteHops();
+
+          // Check if destination of this hop is offline
+          const reachedNode = currentNodes.find((n) => n.id === currentHop.to);
+          if (reachedNode && reachedNode.status === 'offline') {
+            setIsPlaying(false);
+            setIsPaused(false);
+            if (animRef.current) cancelAnimationFrame(animRef.current);
+            addLog(`PACKET DROPPED at Node ${reachedNode.label}: Node is DOWN and cannot receive or forward data!`, 'error');
+            return 0;
+          }
+
           const nextIndex = currentHop.stepIndex + 1;
 
           if (nextIndex < hops.length) {
             // Next intermediate hop
             const nextHop = hops[nextIndex];
-            const fromObj = nodes.find((n) => n.id === nextHop.from) || { label: nextHop.from };
-            const toObj = nodes.find((n) => n.id === nextHop.to) || { label: nextHop.to };
+            const fromObj = currentNodes.find((n) => n.id === nextHop.from) || { label: nextHop.from };
+            const toObj = currentNodes.find((n) => n.id === nextHop.to) || { label: nextHop.to };
+
+            if (fromObj.status === 'offline') {
+              setIsPlaying(false);
+              setIsPaused(false);
+              if (animRef.current) cancelAnimationFrame(animRef.current);
+              addLog(`PACKET DROPPED: Intermediate Node ${fromObj.label} is DOWN and cannot forward data!`, 'error');
+              return 0;
+            }
+            if (toObj.status === 'offline') {
+              setIsPlaying(false);
+              setIsPaused(false);
+              if (animRef.current) cancelAnimationFrame(animRef.current);
+              addLog(`TRANSMISSION BLOCKED: Target Hop Node ${toObj.label} is DOWN! Packet lost.`, 'error');
+              return 0;
+            }
+
             addLog(`Hop ${nextIndex}/${hops.length}: Forwarded packet to ${toObj.label}`, 'info');
             setCurrentHop({ ...nextHop, stepIndex: nextIndex, totalHops: hops.length });
             return 0;
           } else {
-            // Reached destination! Continuous loop cycles to next packet!
-            const dstObj = nodes.find((n) => n.id === targetNodeId);
+            // Reached destination!
+            const dstObj = currentNodes.find((n) => n.id === targetNodeId);
+            if (dstObj?.status === 'offline') {
+              setIsPlaying(false);
+              setIsPaused(false);
+              if (animRef.current) cancelAnimationFrame(animRef.current);
+              addLog(`TRANSMISSION FAILED: Destination Node ${dstObj.label} is DOWN/OFFLINE!`, 'error');
+              return 0;
+            }
+
             setPacketSeq((s) => s + 1);
             addLog(`Packet #${packetSeq} delivered to ${dstObj?.label || 'Destination'}. ACK received. Dispatching next packet...`, 'success');
 
@@ -429,7 +604,7 @@ export default function TopologyLabPage() {
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
     };
-  }, [isPlaying, isPaused, simSpeed, currentHop, currentTopoKey, sourceNodeId, targetNodeId, packetSeq]);
+  }, [isPlaying, isPaused, simSpeed, currentHop, currentTopoKey, sourceNodeId, targetNodeId, packetSeq, nodes]);
 
   // Node geometric placement calculations
   const getNodeCoordinates = (index, total) => {
@@ -950,11 +1125,14 @@ export default function TopologyLabPage() {
                       }}
                       disabled={isPlaying}
                     >
-                      {nodes.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          {n.label} - {n.name} ({n.role.toUpperCase()})
-                        </option>
-                      ))}
+                      {nodes.map((n) => {
+                        const isOffline = n.status === 'offline';
+                        return (
+                          <option key={n.id} value={n.id} disabled={isOffline}>
+                            {n.label} - {n.name} ({n.role.toUpperCase()}) {isOffline ? '[DOWN / INACTIVE]' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
@@ -970,11 +1148,14 @@ export default function TopologyLabPage() {
                       }}
                       disabled={isPlaying}
                     >
-                      {nodes.map((n) => (
-                        <option key={n.id} value={n.id} disabled={n.id === sourceNodeId}>
-                          {n.label} - {n.name} ({n.role.toUpperCase()})
-                        </option>
-                      ))}
+                      {nodes.map((n) => {
+                        const isOffline = n.status === 'offline';
+                        return (
+                          <option key={n.id} value={n.id} disabled={n.id === sourceNodeId || isOffline}>
+                            {n.label} - {n.name} ({n.role.toUpperCase()}) {isOffline ? '[DOWN / INACTIVE]' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
@@ -1102,83 +1283,148 @@ export default function TopologyLabPage() {
 
             {/* Right Panel: Simulation Canvas & Playback */}
             <div className="sim-canvas-panel">
-              <div className="sim-panel-header">
-                <div className="sim-header-title">
-                  <Activity size={18} className="pulse-icon" />
-                  <span>Interactive Node Stage</span>
-                </div>
-                
-                {/* Play, Pause, Stop Bar */}
-                <div className="sim-playback-controls">
-                  {!isPlaying ? (
-                    <button
-                      type="button"
-                      className="sim-ctrl-btn play-btn"
-                      onClick={handlePlaySimulation}
-                    >
-                      <Play size={15} fill="currentColor" />
-                      <span>Play Simulation</span>
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="sim-ctrl-btn pause-btn"
-                        onClick={handlePauseSimulation}
-                      >
-                        <Pause size={15} />
-                        <span>{isPaused ? 'Resume' : 'Pause'}</span>
-                      </button>
+              {(() => {
+                const srcNodeObj = nodes.find((n) => n.id === sourceNodeId);
+                const dstNodeObj = nodes.find((n) => n.id === targetNodeId);
+                const isSourceDown = srcNodeObj?.status === 'offline';
+                const isTargetDown = dstNodeObj?.status === 'offline';
+                const routeHops = getRouteHops(nodes);
+                const deadHop = routeHops.find((h) => {
+                  const toNode = nodes.find((n) => n.id === h.to);
+                  const fromNode = nodes.find((n) => n.id === h.from);
+                  return (toNode && toNode.status === 'offline') || (fromNode && fromNode.status === 'offline');
+                });
+                const deadNode = deadHop
+                  ? nodes.find((n) => (n.id === deadHop.to || n.id === deadHop.from) && n.status === 'offline')
+                  : null;
+                const isPathBlocked = Boolean(deadNode);
+                const isTransmissionBlocked = isSourceDown || isTargetDown || isPathBlocked;
 
-                      <button
-                        type="button"
-                        className="sim-ctrl-btn stop-btn"
-                        onClick={handleStopSimulation}
-                      >
-                        <Square size={14} fill="currentColor" />
-                        <span>Stop</span>
-                      </button>
-                    </>
-                  )}
+                // Detect if Ring topology failover is active
+                let ringFailoverNote = '';
+                if (currentTopoKey === 'ring' && !isTransmissionBlocked && routeHops.length > 0) {
+                  const srcIdx = nodes.findIndex((n) => n.id === sourceNodeId);
+                  const dstIdx = nodes.findIndex((n) => n.id === targetNodeId);
+                  const n = nodes.length;
+                  let curr = srcIdx;
+                  let cwHasDown = false;
+                  while (curr !== dstIdx) {
+                    const next = (curr + 1) % n;
+                    if (nodes[next]?.status === 'offline') { cwHasDown = true; break; }
+                    curr = next;
+                  }
+                  if (cwHasDown) {
+                    const intermediates = routeHops.slice(0, -1).map(h => nodes.find(n => n.id === h.to)?.label).filter(Boolean);
+                    ringFailoverNote = ` (Self-Healing Failover via Node ${intermediates.join(', ') || 'alternate arc'})`;
+                  }
+                }
 
-                  {/* Speed Selector */}
-                  <div className="sim-speed-selector">
-                    <button 
-                      type="button" 
-                      className={`speed-pill ${simSpeed === 0.5 ? 'active' : ''}`}
-                      onClick={() => setSimSpeed(0.5)}
-                    >
-                      0.5x
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`speed-pill ${simSpeed === 1 ? 'active' : ''}`}
-                      onClick={() => setSimSpeed(1)}
-                    >
-                      1x
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`speed-pill ${simSpeed === 2 ? 'active' : ''}`}
-                      onClick={() => setSimSpeed(2)}
-                    >
-                      2x
-                    </button>
-                  </div>
-                </div>
-              </div>
+                return (
+                  <>
+                    <div className="sim-panel-header">
+                      <div className="sim-header-title">
+                        <Activity size={18} className="pulse-icon" />
+                        <span>Interactive Node Stage</span>
+                      </div>
 
-              {/* Status Banner */}
-              <div className={`sim-status-banner ${isPlaying ? (isPaused ? 'paused' : 'running') : 'idle'}`}>
-                <div className="status-indicator-dot" />
-                <span>
-                  {isPlaying
-                    ? isPaused
-                      ? 'SIMULATION PAUSED'
-                      : `CONTINUOUS TRANSMISSION ACTIVE: Node ${nodes.find(n => n.id === sourceNodeId)?.label} ➔ Node ${nodes.find(n => n.id === targetNodeId)?.label} [Packet #${packetSeq}]`
-                    : 'READY: Choose source, destination, and press Play to stream continuous data.'}
-                </span>
-              </div>
+                      {/* Play, Pause, Stop Bar */}
+                      <div className="sim-playback-controls">
+                        {!isPlaying ? (
+                          <button
+                            type="button"
+                            className={`sim-ctrl-btn play-btn ${isTransmissionBlocked ? 'disabled-play' : ''}`}
+                            onClick={handlePlaySimulation}
+                            disabled={isTransmissionBlocked}
+                            title={
+                              isSourceDown
+                                ? `Sender Node ${srcNodeObj?.label || 'Source'} is DOWN and cannot transmit!`
+                                : isTargetDown
+                                ? `Destination Node ${dstNodeObj?.label || 'Target'} is DOWN and cannot receive!`
+                                : isPathBlocked
+                                ? `Path blocked: Node ${deadNode?.label || 'Intermediate'} along route is DOWN!`
+                                : 'Play Continuous Simulation'
+                            }
+                          >
+                            <Play size={15} fill="currentColor" />
+                            <span>
+                              {isSourceDown
+                                ? 'Sender Down (Offline)'
+                                : isTargetDown
+                                ? 'Receiver Down (Offline)'
+                                : isPathBlocked
+                                ? `Path Blocked (${deadNode?.label || 'Node'} Down)`
+                                : 'Play Simulation'}
+                            </span>
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className="sim-ctrl-btn pause-btn"
+                              onClick={handlePauseSimulation}
+                            >
+                              <Pause size={15} />
+                              <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="sim-ctrl-btn stop-btn"
+                              onClick={handleStopSimulation}
+                            >
+                              <Square size={14} fill="currentColor" />
+                              <span>Stop</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* Speed Selector */}
+                        <div className="sim-speed-selector">
+                          <button 
+                            type="button" 
+                            className={`speed-pill ${simSpeed === 0.5 ? 'active' : ''}`}
+                            onClick={() => setSimSpeed(0.5)}
+                          >
+                            0.5x
+                          </button>
+                          <button 
+                            type="button" 
+                            className={`speed-pill ${simSpeed === 1 ? 'active' : ''}`}
+                            onClick={() => setSimSpeed(1)}
+                          >
+                            1x
+                          </button>
+                          <button 
+                            type="button" 
+                            className={`speed-pill ${simSpeed === 2 ? 'active' : ''}`}
+                            onClick={() => setSimSpeed(2)}
+                          >
+                            2x
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Banner */}
+                    <div className={`sim-status-banner ${isPlaying ? (isPaused ? 'paused' : 'running') : isTransmissionBlocked ? 'warning-state' : 'idle'}`}>
+                      <div className={`status-indicator-dot ${isTransmissionBlocked ? 'offline' : ''}`} />
+                      <span>
+                        {isPlaying
+                          ? isPaused
+                            ? 'SIMULATION PAUSED'
+                            : `CONTINUOUS TRANSMISSION ACTIVE: Node ${srcNodeObj?.label} -> Node ${dstNodeObj?.label} [Packet #${packetSeq}]${ringFailoverNote}`
+                          : isSourceDown
+                          ? `CANNOT TRANSMIT: Sender Node ${srcNodeObj?.label} is DOWN (OFFLINE). Inactive nodes cannot send packets.`
+                          : isTargetDown
+                          ? `CANNOT TRANSMIT: Destination Node ${dstNodeObj?.label} is DOWN (OFFLINE).`
+                          : isPathBlocked
+                          ? `CANNOT TRANSMIT: Node ${deadNode?.label || 'Intermediate'} along route is DOWN (OFFLINE). ${currentTopoKey === 'ring' ? 'Both ring directions are severed.' : 'Path is broken.'}`
+                          : `READY: Choose active source, destination, and press Play to stream continuous data.${ringFailoverNote}`}
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
 
               {/* SVG Topology Simulation Stage */}
               <div className="svg-stage-wrapper">
@@ -1231,7 +1477,10 @@ export default function TopologyLabPage() {
                       const nextIdx = (idx + 1) % nodes.length;
                       const p1 = getNodeCoordinates(idx, nodes.length);
                       const p2 = getNodeCoordinates(nextIdx, nodes.length);
-                      const isTransmitting = isPlaying && currentHop.from === node.id && currentHop.to === nodes[nextIdx].id;
+                      const isTransmitting = isPlaying && (
+                        (currentHop.from === node.id && currentHop.to === nodes[nextIdx].id) ||
+                        (currentHop.from === nodes[nextIdx].id && currentHop.to === node.id)
+                      );
 
                       return (
                         <line

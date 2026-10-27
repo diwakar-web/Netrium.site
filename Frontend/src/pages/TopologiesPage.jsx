@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -27,6 +27,14 @@ const TOPOLOGY_ICONS = {
 
 export default function TopologiesPage() {
   const navigate = useNavigate();
+
+  // Scroll to absolute top on page mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const topologyList = Object.values(TOPOLOGY_CARDS);
 
   const handleCardClick = (id) => {

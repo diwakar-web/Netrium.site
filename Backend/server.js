@@ -41,6 +41,14 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 
+// Public Configuration Endpoint (loads strictly from environment variables)
+app.get('/api/config/maps', (req, res) => {
+  res.status(200).json({
+    success: true,
+    cartoApiKey: process.env.CARTO_API_KEY || ''
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const dbStateMap = {

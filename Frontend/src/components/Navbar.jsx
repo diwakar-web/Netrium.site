@@ -77,6 +77,10 @@ export default function Navbar({ onOpenFacility }) {
               onSelectItem={(facilityId) => {
                 if (facilityId === 'multi-mesh') {
                   navigate('/topologies');
+                } else if (facilityId === 'packet-trace' || facilityId === 'cdn') {
+                  navigate('/cdn');
+                } else if (facilityId === 'dsa-algo' || facilityId === 'dsa') {
+                  navigate('/dsa');
                 } else if (onOpenFacility) {
                   onOpenFacility(facilityId);
                 }

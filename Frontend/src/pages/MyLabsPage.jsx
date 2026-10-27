@@ -156,7 +156,17 @@ export default function MyLabsPage() {
                   <button
                     type="button"
                     className="labs-launch-btn"
-                    onClick={() => setActiveFacility(facility.id)}
+                    onClick={() => {
+                      if (facility.id === 'multi-mesh') {
+                        navigate('/topologies');
+                      } else if (facility.id === 'packet-trace' || facility.id === 'cdn') {
+                        navigate('/cdn');
+                      } else if (facility.id === 'dsa-algo' || facility.id === 'dsa') {
+                        navigate('/dsa');
+                      } else {
+                        setActiveFacility(facility.id);
+                      }
+                    }}
                   >
                     <span>Launch Simulation</span>
                     <ArrowUpRight size={14} />
