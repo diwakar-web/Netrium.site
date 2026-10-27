@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import InteractiveSchematicViewer from '../components/InteractiveSchematicViewer';
+import MultiplayerTopologyLab from '../components/MultiplayerTopologyLab';
 import { TOPOLOGY_CARDS } from '../utils/topologyCardArts';
 import { TOPOLOGY_THEORY_DATA } from '../utils/topologyTheoryData';
 import './TopologyLabPage.css';
@@ -787,7 +788,7 @@ export default function TopologyLabPage() {
               onClick={() => setActiveTab('theories')}
             >
               <FileText size={15} />
-              <span>Theories & Specs</span>
+              <span className="tab-title-text">Theories & Specs</span>
               <span className="tab-pill-badge">Curriculum</span>
             </button>
 
@@ -797,7 +798,7 @@ export default function TopologyLabPage() {
               onClick={() => setActiveTab('practical')}
             >
               <Cpu size={15} />
-              <span>Functional Model</span>
+              <span className="tab-title-text">Functional Model</span>
               <span className="tab-pill-badge live-pulse">Interactive</span>
             </button>
 
@@ -807,8 +808,8 @@ export default function TopologyLabPage() {
               onClick={() => setActiveTab('more-practical')}
             >
               <Sliders size={15} />
-              <span>Practical Oriented</span>
-              <span className="tab-pill-badge">Chaos Lab</span>
+              <span className="tab-title-text">Practical Oriented</span>
+              <span className="tab-pill-badge live-pulse">Multiplayer</span>
             </button>
           </div>
 
@@ -1924,11 +1925,15 @@ export default function TopologyLabPage() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB 3: MORE PRACTICAL (CHAOS TESTING & FAULT RESILIENCY) */}
-        {/* ======================================================== */}
         {activeTab === 'more-practical' && (
           <div className="topolab-morepractical-layout">
-            <div className="more-grid">
+            {/* Multi-Device Collaborative Game Environment */}
+            <MultiplayerTopologyLab
+              topologyType={currentTopoKey}
+              currentTopoName={currentTopo?.name || 'Network Topology'}
+            />
+
+            <div className="more-grid" style={{ marginTop: '32px' }}>
               
               {/* Failure Impact Analysis Card */}
               <div className="more-card">
