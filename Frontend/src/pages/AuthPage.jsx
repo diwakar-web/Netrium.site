@@ -137,12 +137,13 @@ export default function AuthPage() {
   // Auto redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && successMsg) {
+      const redirectTarget = location.state?.from || '/';
       const timeout = setTimeout(() => {
-        navigate('/');
+        navigate(redirectTarget);
       }, 1200);
       return () => clearTimeout(timeout);
     }
-  }, [isAuthenticated, successMsg, navigate]);
+  }, [isAuthenticated, successMsg, navigate, location.state]);
 
   // Format seconds to MM:SS
   const formatTime = (totalSeconds) => {
@@ -193,8 +194,9 @@ export default function AuthPage() {
         setSuccessMsg('Authentication successful. Redirecting to profile setup...');
         setTimeout(() => navigate('/profile?firstTime=true'), 900);
       } else {
+        const redirectTarget = location.state?.from || '/';
         setSuccessMsg('Authentication successful. Welcome to Netrium.');
-        setTimeout(() => navigate('/'), 900);
+        setTimeout(() => navigate(redirectTarget), 900);
       }
     } catch (err) {
       setErrorMsg(err.message || 'Failed to authenticate. Please check your credentials.');
@@ -310,12 +312,13 @@ export default function AuthPage() {
     setOauthLoading('google');
     try {
       const res = await loginWithGoogle();
+      const redirectTarget = location.state?.from || '/';
       if (res?.isNewUser || !res?.user?.isProfileComplete) {
         setSuccessMsg('Google verification complete! Setting up your profile...');
         setTimeout(() => navigate('/profile?firstTime=true'), 900);
       } else {
         setSuccessMsg('Google verification completed. Welcome back!');
-        setTimeout(() => navigate('/'), 900);
+        setTimeout(() => navigate(redirectTarget), 900);
       }
     } catch (err) {
       setErrorMsg(err.message || 'Firebase Google authentication failed.');
@@ -330,12 +333,13 @@ export default function AuthPage() {
     setOauthLoading('github');
     try {
       const res = await loginWithGithub();
+      const redirectTarget = location.state?.from || '/';
       if (res?.isNewUser || !res?.user?.isProfileComplete) {
         setSuccessMsg('GitHub verification complete! Setting up your profile...');
         setTimeout(() => navigate('/profile?firstTime=true'), 900);
       } else {
         setSuccessMsg('GitHub verification completed. Welcome back!');
-        setTimeout(() => navigate('/'), 900);
+        setTimeout(() => navigate(redirectTarget), 900);
       }
     } catch (err) {
       setErrorMsg(err.message || 'Firebase GitHub authentication failed.');
@@ -474,10 +478,11 @@ export default function AuthPage() {
 
     const fullOtp = forgotOtpDigits.join('');
     setIsLoading(true);
+    const redirectTarget = location.state?.from || '/';
     try {
       await forgotPasswordReset(forgotEmail.trim(), fullOtp, forgotNewPassword);
       setSuccessMsg('Password updated successfully! Logging you in...');
-      setTimeout(() => navigate('/'), 900);
+      setTimeout(() => navigate(redirectTarget), 900);
     } catch (err) {
       setErrorMsg(err.message || 'Failed to update password.');
     } finally {
@@ -491,10 +496,11 @@ export default function AuthPage() {
     setSuccessMsg('');
     const fullOtp = forgotOtpDigits.join('');
     setIsLoading(true);
+    const redirectTarget = location.state?.from || '/';
     try {
       await forgotPasswordContinue(forgotEmail.trim(), fullOtp);
       setSuccessMsg('Authentication confirmed! Welcome back to Netrium.');
-      setTimeout(() => navigate('/'), 900);
+      setTimeout(() => navigate(redirectTarget), 900);
     } catch (err) {
       setErrorMsg(err.message || 'Failed to authenticate.');
     } finally {
@@ -589,6 +595,13 @@ export default function AuthPage() {
         <div className="auth-form-side">
 
           {/* Alert Messages */}
+          {location.state?.message && !errorMsg && !successMsg && (
+            <div className="auth-status-alert info" style={{ background: 'rgba(0, 191, 99, 0.08)', borderColor: 'rgba(0, 191, 99, 0.35)', color: '#00bf63' }}>
+              <AlertCircle size={15} />
+              <span>{location.state.message}</span>
+            </div>
+          )}
+
           {errorMsg && (
             <div className="auth-status-alert error">
               <AlertCircle size={15} />

@@ -1,10 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ArrowRight, X } from 'lucide-react'
 import ScrollExpand from './ScrollExpand'
 import './OurVision.css'
 
 export default function OurVision({ onOpenFacility }) {
   const [dismissedCards, setDismissedCards] = useState({})
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.innerWidth <= 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      );
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleDismissCard = (idx, e) => {
     e.stopPropagation()
@@ -44,6 +57,79 @@ export default function OurVision({ onOpenFacility }) {
     }
   ]
 
+  const renderVisionContent = (isMobileView = false) => (
+    <div className={isMobileView ? "vision-mobile-content" : "vision-overlay-content"}>
+      {/* Header Section */}
+      <div className="vision-header">
+        <h2 className="vision-main-title">
+          Why We Built <span className="vision-blue-text">NetRIUM</span>
+        </h2>
+        <p className="vision-subtitle">
+          Traditional CS education leaves engineers unprepared for production systems ,  here is what the data reveals:
+        </p>
+      </div>
+
+      {/* 6 Problem Cards Grid: 3x2 Matrix with Dismiss Buttons */}
+      <div className="vision-problems-grid">
+        {problems.map((item, idx) => {
+          const isDismissed = dismissedCards[idx]
+          if (isDismissed) {
+            return isMobileView ? null : <div className="vision-card vision-card-ghost-space" key={idx} aria-hidden="true" />
+          }
+
+          return (
+            <div className="vision-card" key={idx}>
+              <button
+                type="button"
+                className="card-dismiss-cross-btn"
+                onClick={(e) => handleDismissCard(idx, e)}
+                title="Dismiss card temporarily"
+                aria-label="Dismiss card"
+              >
+                <X size={12} />
+              </button>
+              <div className="vision-card-stat">{item.stat}</div>
+              <h3 className="vision-card-title">{item.title}</h3>
+              <p className="vision-card-desc">{item.desc}</p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Concluding Statement: What Netrium Solves */}
+      <div className="vision-solution-banner">
+        <div className="solution-inner">
+          <div className="solution-text-col">
+            <h3 className="solution-title">
+              Real-Time Systems & <span className="solution-title-blue">Interactive Engineering Lab</span>
+            </h3>
+            <p className="solution-body">
+              NetRIUM is a real-time interactive learning laboratory that brings complex concepts from Operating Systems, Computer Networks, Distributed Systems, and Data Structures & Algorithms to life. Through dynamic visualizations, simulations, and multi-device experimentation, users can build, observe, and interact with algorithms and systems as they work in real time.
+            </p>
+          </div>
+
+          <div className="solution-actions-col">
+            <button
+              className="vision-launch-btn primary-black"
+              onClick={() => onOpenFacility && onOpenFacility('os-kernel')}
+            >
+              <span>Launch Interactive Lab</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <section className="our-vision-section our-vision-mobile" id="our-vision">
+        {renderVisionContent(true)}
+      </section>
+    )
+  }
+
   return (
     <section className="our-vision-section" id="our-vision">
       <ScrollExpand
@@ -61,69 +147,9 @@ export default function OurVision({ onOpenFacility }) {
         overlayScrim={0.02}
         className="vision-scroll-expand"
       >
-        <div className="vision-overlay-content">
-          {/* Header Section */}
-          <div className="vision-header">
-            <h2 className="vision-main-title">
-              Why We Built <span className="vision-blue-text">NetRIUM</span>
-            </h2>
-            <p className="vision-subtitle">
-              Traditional CS education leaves engineers unprepared for production systems ,  here is what the data reveals:
-            </p>
-          </div>
-
-          {/* 6 Problem Cards Grid: 3x2 Matrix with Dismiss Buttons */}
-          <div className="vision-problems-grid">
-            {problems.map((item, idx) => {
-              const isDismissed = dismissedCards[idx]
-              if (isDismissed) {
-                return <div className="vision-card vision-card-ghost-space" key={idx} aria-hidden="true" />
-              }
-
-              return (
-                <div className="vision-card" key={idx}>
-                  <button
-                    type="button"
-                    className="card-dismiss-cross-btn"
-                    onClick={(e) => handleDismissCard(idx, e)}
-                    title="Dismiss card temporarily"
-                    aria-label="Dismiss card"
-                  >
-                    <X size={12} />
-                  </button>
-                  <div className="vision-card-stat">{item.stat}</div>
-                  <h3 className="vision-card-title">{item.title}</h3>
-                  <p className="vision-card-desc">{item.desc}</p>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Concluding Statement: What Netrium Solves */}
-          <div className="vision-solution-banner">
-            <div className="solution-inner">
-              <div className="solution-text-col">
-                <h3 className="solution-title">
-                  Real-Time Systems & <span className="solution-title-blue">Interactive Engineering Lab</span>
-                </h3>
-                <p className="solution-body">
-                  NetRIUM is a real-time interactive learning laboratory that brings complex concepts from Operating Systems, Computer Networks, Distributed Systems, and Data Structures & Algorithms to life. Through dynamic visualizations, simulations, and multi-device experimentation, users can build, observe, and interact with algorithms and systems as they work in real time.
-                </p>
-              </div>
-
-              <div className="solution-actions-col">
-                <button
-                  className="vision-launch-btn primary-black"
-                  onClick={() => onOpenFacility && onOpenFacility('os-kernel')}
-                >
-                  <span>Launch Interactive Lab</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {renderVisionContent(false)}
       </ScrollExpand>
     </section>
   )
 }
+

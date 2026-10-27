@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import GradientWaves from './components/GradientWaves'
 import Navbar from './components/Navbar'
@@ -26,11 +26,16 @@ import DsaLabPage from './pages/DsaLabPage'
 import ScrollToTop from './components/ScrollToTop'
 import TextSelectionSlider from './components/TextSelectionSlider'
 import NetAiDrawer from './components/NetAiDrawer'
+import ProtectedRoute from './components/ProtectedRoute'
+import { useAuth } from './context/AuthContext'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import './App.css'
 
 function LandingHome() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { isAuthenticated } = useAuth()
   const [activeFacility, setActiveFacility] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -43,6 +48,20 @@ function LandingHome() {
   }, [location.state])
 
   const handleOpenFacility = (facilityId) => {
+    let targetPath = '/topologies'
+    if (facilityId === 'packet-trace' || facilityId === 'cdn') targetPath = '/cdn'
+    else if (facilityId === 'dsa-algo' || facilityId === 'dsa') targetPath = '/dsa'
+
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: targetPath,
+          message: 'Please sign in to access Netrium laboratory simulations'
+        }
+      })
+      return
+    }
+
     if (facilityId === 'multi-mesh' || facilityId === 'topologies') {
       navigate('/topologies')
       return
@@ -177,17 +196,27 @@ export default function App() {
       <ScrollToTop />
       <TextSelectionSlider />
       <NetAiDrawer />
+      <Analytics />
+      <SpeedInsights />
       <Routes>
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/my-labs" element={<MyLabsPage />} />
-        <Route path="/topologies" element={<TopologiesPage />} />
-        <Route path="/topologies/:topologyId" element={<TopologyLabPage />} />
-        <Route path="/cdn" element={<CdnPage />} />
-        <Route path="/dsa" element={<DsaPage />} />
-        <Route path="/dsa/:dsaId" element={<DsaLabPage />} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/my-labs" element={<ProtectedRoute><MyLabsPage /></ProtectedRoute>} />
+        <Route path="/labs" element={<ProtectedRoute><Navigate to="/my-labs" replace /></ProtectedRoute>} />
+        <Route path="/lab" element={<ProtectedRoute><Navigate to="/my-labs" replace /></ProtectedRoute>} />
+        <Route path="/topologies" element={<ProtectedRoute><TopologiesPage /></ProtectedRoute>} />
+        <Route path="/topologies/:topologyId" element={<ProtectedRoute><TopologyLabPage /></ProtectedRoute>} />
+        <Route path="/cn" element={<ProtectedRoute><Navigate to="/topologies" replace /></ProtectedRoute>} />
+        <Route path="/cn/*" element={<ProtectedRoute><Navigate to="/topologies" replace /></ProtectedRoute>} />
+        <Route path="/network" element={<ProtectedRoute><Navigate to="/topologies" replace /></ProtectedRoute>} />
+        <Route path="/networks" element={<ProtectedRoute><Navigate to="/topologies" replace /></ProtectedRoute>} />
+        <Route path="/cdn" element={<ProtectedRoute><CdnPage /></ProtectedRoute>} />
+        <Route path="/cdn/*" element={<ProtectedRoute><CdnPage /></ProtectedRoute>} />
+        <Route path="/dsa" element={<ProtectedRoute><DsaPage /></ProtectedRoute>} />
+        <Route path="/dsa/:dsaId" element={<ProtectedRoute><DsaLabPage /></ProtectedRoute>} />
+        <Route path="/dsa/*" element={<ProtectedRoute><DsaPage /></ProtectedRoute>} />
         <Route path="*" element={<LandingHome />} />
       </Routes>
     </>

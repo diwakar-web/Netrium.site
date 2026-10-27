@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import Dismissible from './Dismissible'
 import avatar1 from '../assets/avatar1.jpg'
 import avatar2 from '../assets/avatar2.jpg'
@@ -6,41 +5,12 @@ import avatar3 from '../assets/avatar3.jpg'
 import avatar4 from '../assets/avatar4.jpg'
 
 export default function ActiveNodes() {
-  const [nodeCount, setNodeCount] = useState(() => {
-    const cached = localStorage.getItem('netrium_lab_users_count')
-    return cached ? parseInt(cached, 10) : 850
-  })
-
-  // Increment counter by 1 on every site loading via database API
-  useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-    fetch(`${backendUrl}/api/stats/visit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && typeof data.count === 'number') {
-          setNodeCount(data.count)
-          localStorage.setItem('netrium_lab_users_count', String(data.count))
-        }
-      })
-      .catch((err) => {
-        console.warn('[ActiveNodes] Stat visit increment fallback:', err)
-        setNodeCount((prev) => {
-          const next = prev + 1
-          localStorage.setItem('netrium_lab_users_count', String(next))
-          return next
-        })
-      })
-  }, [])
-
   return (
     <Dismissible 
       inline 
       as="div" 
       className="active-nodes-container" 
-      title="Active real-time simulation nodes connected across universities and research labs"
+      title="Trusted by hundreds of users across universities and research labs"
     >
       {/* 4 Overlapping Avatars */}
       <div className="avatar-stack">
@@ -66,11 +36,11 @@ export default function ActiveNodes() {
       <div className="active-nodes-info">
         <div className="active-nodes-count">
           <span className="live-dot animate-pulse-live"></span>
-          <strong>{nodeCount}</strong>
-          <span>have used</span>
+          <strong>Trusted by</strong>
         </div>
-        <p className="active-nodes-subtitle">our laboratory</p>
+        <p className="active-nodes-subtitle">hundreds of users</p>
       </div>
     </Dismissible>
   )
 }
+

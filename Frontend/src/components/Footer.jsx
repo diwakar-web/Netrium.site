@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import PixelSwap from './PixelSwap'
 import Dismissible from './Dismissible'
 import darkLogo from '../assets/DarkLogo.png'
@@ -5,6 +6,20 @@ import lightLogo from '../assets/Light Logo.png'
 import './Footer.css'
 
 export default function Footer({ id, onOpenFacility }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.innerWidth <= 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      );
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const renderFooterContent = (isSwapped = false) => (
     <div className={`footer-swap-container ${isSwapped ? 'banner-second' : 'banner-first'}`}>
       {/* Main Footer Grid Columns */}
@@ -115,12 +130,18 @@ export default function Footer({ id, onOpenFacility }) {
         <Dismissible inline as="span" className={isSwapped ? 'blue-sub' : ''}>
           © 2026 Netrium.site ,  All rights reserved.
         </Dismissible>
-        <Dismissible inline as="span" className={`footer-credits ${isSwapped ? 'blue-sub' : ''}`}>
-          Powered by React + OGL + GSAP + React Bits
-        </Dismissible>
+        
       </div>
     </div>
   )
+
+  if (isMobile) {
+    return (
+      <footer id={id || "netrium-footer"} className="netrium-footer-wrapper mobile-footer-direct">
+        {renderFooterContent(false)}
+      </footer>
+    )
+  }
 
   return (
     <footer id={id || "netrium-footer"} className="netrium-footer-wrapper">

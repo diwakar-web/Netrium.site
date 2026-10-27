@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Maximize2, Minimize2, CheckSquare, Square, Layers, MapPin } from 'lucide-react';
+import { getApiUrl, safeJsonParse } from '../utils/api';
 import './CdnMap.css';
 
 const DEFAULT_CARTO_KEY = 'cb1_4qxy_1_95fcdfd64bd55759deaea69f';
@@ -68,8 +69,8 @@ export default function CdnMap({
   // Securely retrieve Carto Map API key from backend if not pre-injected by Vite
   useEffect(() => {
     if (!apiKey) {
-      fetch('/api/config/maps')
-        .then(res => res.ok ? res.json() : null)
+      fetch(getApiUrl('/api/config/maps'))
+        .then(res => res.ok ? safeJsonParse(res) : null)
         .then(data => {
           if (data?.cartoApiKey) {
             setApiKey(data.cartoApiKey);

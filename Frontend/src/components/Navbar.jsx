@@ -91,6 +91,21 @@ export default function Navbar({ onOpenFacility }) {
               colors={['#00bf63', '#022c22', '#000000']}
               accentColor="#00bf63"
               onSelectItem={(facilityId) => {
+                let targetPath = '/topologies';
+                if (facilityId === 'multi-mesh' || facilityId === 'topologies') targetPath = '/topologies';
+                else if (facilityId === 'packet-trace' || facilityId === 'cdn') targetPath = '/cdn';
+                else if (facilityId === 'dsa-algo' || facilityId === 'dsa') targetPath = '/dsa';
+
+                if (!isAuthenticated) {
+                  navigate('/login', {
+                    state: {
+                      from: targetPath,
+                      message: 'Please sign in to access Netrium laboratory simulations'
+                    }
+                  });
+                  return;
+                }
+
                 if (facilityId === 'multi-mesh') {
                   navigate('/topologies');
                 } else if (facilityId === 'packet-trace' || facilityId === 'cdn') {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MessageSquareQuote, X } from 'lucide-react'
+import { getApiUrl, safeJsonParse } from '../utils/api'
 
 export default function UserReviews() {
   const [isDismissed, setIsDismissed] = useState(false)
@@ -37,9 +38,8 @@ export default function UserReviews() {
 
   // Fetch reviews from MongoDB database
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-    fetch(`${backendUrl}/api/reviews`)
-      .then(res => res.json())
+    fetch(getApiUrl('/api/reviews'))
+      .then(res => safeJsonParse(res))
       .then(data => {
         if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
           const dbReviews = data.reviews.map(r => ({

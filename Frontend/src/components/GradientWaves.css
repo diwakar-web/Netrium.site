@@ -8,3 +8,13 @@
   pointer-events: none;
   z-index: 0;
 }
+
+.gradient-waves-container.is-mobile-fallback {
+  background: radial-gradient(circle at 50% 25%, rgba(0, 191, 99, 0.12) 0%, rgba(2, 44, 34, 0.45) 45%, #000000 80%), #000000 !important;
+}
+
+@media (max-width: 768px) {
+  .gradient-waves-container {
+    background: radial-gradient(circle at 50% 25%, rgba(0, 191, 99, 0.12) 0%, rgba(2, 44, 34, 0.45) 45%, #000000 80%), #000000 !important;
+  }
+}

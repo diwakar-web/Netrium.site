@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import ScrambledText from './ScrambledText'
 import Dismissible from './Dismissible'
+import { getApiUrl, safeJsonParse } from '../utils/api'
 import './CommunityReviews.css'
 
 export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
@@ -134,12 +135,13 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
 
   const [dbReviews, setDbReviews] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mobileReviewIdx, setMobileReviewIdx] = useState(0)
+  const [touchReviewStart, setTouchReviewStart] = useState(null)
 
   // Fetch reviews from MongoDB database on mount
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-    fetch(`${backendUrl}/api/reviews`)
-      .then(res => res.json())
+    fetch(getApiUrl('/api/reviews'))
+      .then(res => safeJsonParse(res))
       .then(data => {
         if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
           setDbReviews(data.reviews)
@@ -169,6 +171,32 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     setActiveRowIndex(prev => (prev < totalRows - 1 ? prev + 1 : 0))
   }
 
+  // Mobile continuous swipe handlers
+  const handleTouchReviewStart = (e) => {
+    setTouchReviewStart(e.touches[0].clientX)
+  }
+
+  const handleTouchReviewEnd = (e) => {
+    if (touchReviewStart === null) return
+    const diff = touchReviewStart - e.changedTouches[0].clientX
+    if (diff > 35) {
+      // Swipe left -> next card in continuous loop
+      setMobileReviewIdx(prev => (prev + 1) % allReviews.length)
+    } else if (diff < -35) {
+      // Swipe right -> prev card in continuous loop
+      setMobileReviewIdx(prev => (prev - 1 + allReviews.length) % allReviews.length)
+    }
+    setTouchReviewStart(null)
+  }
+
+  const handleMobilePrevReview = () => {
+    setMobileReviewIdx(prev => (prev - 1 + allReviews.length) % allReviews.length)
+  }
+
+  const handleMobileNextReview = () => {
+    setMobileReviewIdx(prev => (prev + 1) % allReviews.length)
+  }
+
   // Ticker ribbon items
   const ribbonTickerItems = [
     'VERIFIED STUDENT & RESEARCHER EXPERIENCES',
@@ -183,10 +211,9 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     if (!newReview.name.trim() || !newReview.comment.trim() || isSubmitting) return
 
     setIsSubmitting(true)
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
     try {
-      const res = await fetch(`${backendUrl}/api/reviews`, {
+      const res = await fetch(getApiUrl('/api/reviews'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -198,7 +225,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
         })
       })
 
-      const data = await res.json()
+      const data = await safeJsonParse(res)
       if (data.success && data.review) {
         setDbReviews(prev => [data.review, ...prev])
         // Notify UserReviews sliding panel on top right
@@ -268,25 +295,119 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
         </Dismissible>
 
         {/* =================================================================
-            3. SINGLE ROW OF 4 CARDS WITH PREV / NEXT BUTTONS
+            3. DESKTOP ROW VIEW vs MOBILE CONTINUOUS LOOP CAROUSEL
             ================================================================= */}
-        <div className="single-row-stage">
-          {/* Left Arrow Button */}
-          <Dismissible inline as="div" className="row-nav-btn-wrap">
-            <button 
-              type="button"
-              className="row-nav-arrow-btn left"
-              onClick={handlePrevRow}
-              aria-label="Previous row of reviews"
-              title="Previous reviews"
-            >
-              <ChevronLeft size={22} />
-            </button>
-          </Dismissible>
+        
+        {/* DESKTOP VIEW: 4 Cards per row */}
+        <div className="desktop-reviews-view">
+          <div className="single-row-stage">
+            {/* Left Arrow Button */}
+            <Dismissible inline as="div" className="row-nav-btn-wrap">
+              <button 
+                type="button" 
+                className="row-nav-arrow-btn left"
+                onClick={handlePrevRow}
+                aria-label="Previous row of reviews"
+                title="Previous reviews"
+              >
+                <ChevronLeft size={22} />
+              </button>
+            </Dismissible>
 
-          {/* 1 Row at a Time: 4 Cards */}
-          <div className="single-row-4cards-grid" key={activeRowIndex}>
-            {currentRowReviews.map((rev) => {
+            {/* 1 Row at a Time: 4 Cards */}
+            <div className="single-row-4cards-grid" key={activeRowIndex}>
+              {currentRowReviews.map((rev) => {
+                const initials = rev.name
+                  .trim()
+                  .split(' ')
+                  .slice(0, 2)
+                  .map(p => p[0])
+                  .join('')
+                  .toUpperCase() || 'NT'
+
+                return (
+                  <Dismissible as="div" className="clean-review-card" key={rev._id || rev.id} crossPosition="inside-right">
+                    {/* Card Header: Tag & 5-Stars */}
+                    <div className="clean-card-header">
+                      <span className="clean-tag-badge">
+                        {rev.tag}
+                      </span>
+                      <div className="clean-stars-row" aria-label="5 stars rating">
+                        {[...Array(rev.rating || 5)].map((_, sIdx) => (
+                          <Star key={sIdx} size={13} className="star-filled" fill="#00bf63" />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Card Body: Quote */}
+                    <p className="clean-card-quote">
+                      “{rev.comment}”
+                    </p>
+
+                    {/* Card Footer: User Signature */}
+                    <div className="clean-card-footer">
+                      <div className="clean-avatar-circle">
+                        {initials}
+                      </div>
+                      <div className="clean-author-meta">
+                        <div className="clean-author-name">
+                          <span>{rev.name}</span>
+                        </div>
+                        <div className="clean-author-role">{rev.role}</div>
+                      </div>
+                    </div>
+                  </Dismissible>
+                )
+              })}
+            </div>
+
+            {/* Right Arrow Button */}
+            <Dismissible inline as="div" className="row-nav-btn-wrap">
+              <button 
+                type="button" 
+                className="row-nav-arrow-btn right"
+                onClick={handleNextRow}
+                aria-label="Next row of reviews"
+                title="Next reviews"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </Dismissible>
+          </div>
+
+          {/* Row Pagination Dots & Controls */}
+          <div className="reviews-row-pagination">
+            <div className="reviews-dots-row">
+              {Array.from({ length: totalRows }).map((_, rIdx) => (
+                <button
+                  type="button"
+                  key={rIdx}
+                  className={`reviews-row-dot ${activeRowIndex === rIdx ? 'active' : ''}`}
+                  onClick={() => setActiveRowIndex(rIdx)}
+                  aria-label={`View review row ${rIdx + 1}`}
+                  title={`Row ${rIdx + 1} of ${totalRows}`}
+                />
+              ))}
+            </div>
+            <span className="reviews-counter-badge">
+              Row {activeRowIndex + 1} of {totalRows}
+            </span>
+          </div>
+        </div>
+
+        {/* MOBILE VIEW: Exactly 1 card visible at a time, other cards out of screen, sliding on swipe in continuous loop */}
+        <div 
+          className="mobile-reviews-view"
+          onTouchStart={handleTouchReviewStart}
+          onTouchEnd={handleTouchReviewEnd}
+        >
+          <div 
+            className="mobile-reviews-track"
+            style={{
+              transform: `translateX(-${mobileReviewIdx * 100}%)`
+            }}
+          >
+            {allReviews.map((rev) => {
               const initials = rev.name
                 .trim()
                 .split(' ')
@@ -296,72 +417,79 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                 .toUpperCase() || 'NT'
 
               return (
-                <Dismissible as="div" className="clean-review-card" key={rev._id || rev.id} crossPosition="inside-right">
-                  {/* Card Header: Tag & 5-Stars */}
-                  <div className="clean-card-header">
-                    <span className="clean-tag-badge">
-                      {rev.tag}
-                    </span>
-                    <div className="clean-stars-row" aria-label="5 stars rating">
-                      {[...Array(rev.rating || 5)].map((_, sIdx) => (
-                        <Star key={sIdx} size={13} className="star-filled" fill="#00bf63" />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Card Body: Quote */}
-                  <p className="clean-card-quote">
-                    “{rev.comment}”
-                  </p>
-
-                  {/* Card Footer: User Signature */}
-                  <div className="clean-card-footer">
-                    <div className="clean-avatar-circle">
-                      {initials}
-                    </div>
-                    <div className="clean-author-meta">
-                      <div className="clean-author-name">
-                        <span>{rev.name}</span>
+                <div className="mobile-review-card-wrapper" key={rev._id || rev.id}>
+                  <div className="clean-review-card">
+                    {/* Card Header: Tag & 5-Stars */}
+                    <div className="clean-card-header">
+                      <span className="clean-tag-badge">
+                        {rev.tag}
+                      </span>
+                      <div className="clean-stars-row" aria-label="5 stars rating">
+                        {[...Array(rev.rating || 5)].map((_, sIdx) => (
+                          <Star key={sIdx} size={13} className="star-filled" fill="#00bf63" />
+                        ))}
                       </div>
-                      <div className="clean-author-role">{rev.role}</div>
+                    </div>
+
+                    {/* Card Body: Quote */}
+                    <p className="clean-card-quote">
+                      “{rev.comment}”
+                    </p>
+
+                    {/* Card Footer: User Signature */}
+                    <div className="clean-card-footer">
+                      <div className="clean-avatar-circle">
+                        {initials}
+                      </div>
+                      <div className="clean-author-meta">
+                        <div className="clean-author-name">
+                          <span>{rev.name}</span>
+                        </div>
+                        <div className="clean-author-role">{rev.role}</div>
+                      </div>
                     </div>
                   </div>
-                </Dismissible>
+                </div>
               )
             })}
           </div>
 
-          {/* Right Arrow Button */}
-          <Dismissible inline as="div" className="row-nav-btn-wrap">
-            <button 
+          {/* Mobile Continuous Loop Swipe Controls */}
+          <div className="mobile-reviews-controls">
+            <button
               type="button"
-              className="row-nav-arrow-btn right"
-              onClick={handleNextRow}
-              aria-label="Next row of reviews"
-              title="Next reviews"
+              className="mobile-review-nav-btn"
+              onClick={handleMobilePrevReview}
+              aria-label="Previous review in loop"
+              title="Previous review"
             >
-              <ChevronRight size={22} />
+              <ChevronLeft size={18} />
             </button>
-          </Dismissible>
-        </div>
 
-        {/* Row Pagination Dots & Controls */}
-        <div className="reviews-row-pagination">
-          <div className="reviews-dots-row">
-            {Array.from({ length: totalRows }).map((_, rIdx) => (
-              <button
-                type="button"
-                key={rIdx}
-                className={`reviews-row-dot ${activeRowIndex === rIdx ? 'active' : ''}`}
-                onClick={() => setActiveRowIndex(rIdx)}
-                aria-label={`View review row ${rIdx + 1}`}
-                title={`Row ${rIdx + 1} of ${totalRows}`}
-              />
-            ))}
+            <div className="mobile-review-counter-wrap">
+              <span className="mobile-review-counter-text">
+                Review {mobileReviewIdx + 1} of {allReviews.length}
+              </span>
+              <div className="mobile-review-dots-mini">
+                {allReviews.slice(0, Math.min(8, allReviews.length)).map((_, dotIdx) => (
+                  <span
+                    key={dotIdx}
+                    className={`mobile-review-mini-dot ${mobileReviewIdx % Math.min(8, allReviews.length) === dotIdx ? 'active' : ''}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="mobile-review-nav-btn"
+              onClick={handleMobileNextReview}
+              aria-label="Next review in loop"
+              title="Next review"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
-          <span className="reviews-counter-badge">
-            Row {activeRowIndex + 1} of {totalRows}
-          </span>
         </div>
 
         {/* =================================================================

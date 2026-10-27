@@ -83,3 +83,28 @@
     padding-right: 0;
   }
 }
+
+@media (max-width: 768px) {
+  .about-netrium-section {
+    padding: 60px 20px 40px 20px !important;
+  }
+
+  .about-netrium-container {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .about-right-col {
+    display: none !important;
+  }
+
+  .about-heading {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
+
+  .about-description {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+}

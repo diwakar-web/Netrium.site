@@ -153,8 +153,13 @@ const GradientWaves = ({
 }) => {
   const containerRef = useRef(null);
   const enableMouseRef = useRef(mouseInteraction);
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth <= 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  );
 
   useEffect(() => {
+    if (isMobile) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -298,6 +303,7 @@ const GradientWaves = ({
   }, []);
 
   useEffect(() => {
+    if (isMobile) return;
     const container = containerRef.current;
     if (!container) return;
     const ctx = ctxMap.get(container);
@@ -362,7 +368,12 @@ const GradientWaves = ({
     parallaxStrength
   ]);
 
-  return <div ref={containerRef} className={`gradient-waves-container ${className}`.trim()} />;
+  return (
+    <div
+      ref={containerRef}
+      className={`gradient-waves-container ${isMobile ? 'is-mobile-fallback' : ''} ${className}`.trim()}
+    />
+  );
 };
 
 export default GradientWaves;

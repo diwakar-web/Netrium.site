@@ -382,15 +382,48 @@
   .netrium-navbar {
     top: 10px;
     width: calc(100% - 24px);
-    height: 58px;
-    padding: 0 14px;
+    height: 56px;
+    padding: 0 12px;
     border-radius: 12px;
   }
   .navbar-logo-img {
-    height: 44px;
+    height: 40px;
+  }
+  .navbar-left {
+    min-width: auto;
+  }
+  .navbar-right-actions {
+    gap: 8px;
   }
   .btn-nav-login {
-    padding: 6px 16px;
+    padding: 6px 14px;
     font-size: 12px;
+  }
+}
+
+@media (max-width: 440px) {
+  .netrium-navbar {
+    top: 8px;
+    width: calc(100% - 16px);
+    height: 52px;
+    padding: 0 10px;
+  }
+  .navbar-logo-img {
+    height: 36px;
+  }
+  .navbar-right-actions {
+    gap: 6px;
+  }
+  .btn-nav-login {
+    padding: 5px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .netai-nav-toggle-btn {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+  .nav-user-name {
+    display: none;
   }
 }

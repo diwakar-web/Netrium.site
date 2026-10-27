@@ -1,9 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import MagnetLines from './MagnetLines'
 import Dismissible from './Dismissible'
 import './AboutNetrium.css'
 
 export default function AboutNetrium() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.innerWidth <= 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      );
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <section className="about-netrium-section" id="about-netrium">
       <div className="about-netrium-container">
@@ -22,21 +36,24 @@ export default function AboutNetrium() {
           </Dismissible>
         </div>
 
-        {/* Right Column: Clean MagnetLines aligned to rightmost side */}
-        <div className="about-right-col">
-          <Dismissible as="div" className="magnet-lines-stage">
-            <MagnetLines
-              rows={8}
-              columns={8}
-              containerSize="360px"
-              lineColor="#00bf63"
-              lineWidth="3px"
-              lineHeight="24px"
-              baseAngle={-10}
-            />
-          </Dismissible>
-        </div>
+        {/* Right Column: Clean MagnetLines aligned to rightmost side (Desktop Only) */}
+        {!isMobile && (
+          <div className="about-right-col">
+            <Dismissible as="div" className="magnet-lines-stage">
+              <MagnetLines
+                rows={8}
+                columns={8}
+                containerSize="360px"
+                lineColor="#00bf63"
+                lineWidth="3px"
+                lineHeight="24px"
+                baseAngle={-10}
+              />
+            </Dismissible>
+          </div>
+        )}
       </div>
     </section>
   )
 }
+

@@ -1,12 +1,55 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Binary, Server, Network, Layers, GitFork, ArrowUpRight, X } from 'lucide-react'
+import { Binary, Server, Network, Layers, GitFork, ArrowUpRight, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import ScrambledText from './ScrambledText'
+import { useAuth } from '../context/AuthContext'
 import './WhatWeOffer.css'
 
 export default function WhatWeOffer({ onOpenFacility }) {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [dismissedCardKeys, setDismissedCardKeys] = useState({})
+  const [carouselIndices, setCarouselIndices] = useState({})
+  const [touchStarts, setTouchStarts] = useState({})
+
+  const handleTouchStart = (sIdx, e) => {
+    setTouchStarts(prev => ({ ...prev, [sIdx]: e.touches[0].clientX }))
+  }
+
+  const handleTouchEnd = (sIdx, totalCards, e) => {
+    const startX = touchStarts[sIdx]
+    if (startX === undefined) return
+    const endX = e.changedTouches[0].clientX
+    const diff = startX - endX
+
+    if (diff > 35) {
+      // Swipe left -> next card in continuous loop
+      setCarouselIndices(prev => ({
+        ...prev,
+        [sIdx]: ((prev[sIdx] || 0) + 1) % totalCards
+      }))
+    } else if (diff < -35) {
+      // Swipe right -> prev card in continuous loop
+      setCarouselIndices(prev => ({
+        ...prev,
+        [sIdx]: ((prev[sIdx] || 0) - 1 + totalCards) % totalCards
+      }))
+    }
+  }
+
+  const handlePrevCard = (sIdx, totalCards) => {
+    setCarouselIndices(prev => ({
+      ...prev,
+      [sIdx]: ((prev[sIdx] || 0) - 1 + totalCards) % totalCards
+    }))
+  }
+
+  const handleNextCard = (sIdx, totalCards) => {
+    setCarouselIndices(prev => ({
+      ...prev,
+      [sIdx]: ((prev[sIdx] || 0) + 1) % totalCards
+    }))
+  }
 
   const handleDismissCard = (cardKey, e) => {
     e.stopPropagation()
@@ -181,65 +224,114 @@ export default function WhatWeOffer({ onOpenFacility }) {
                   <div className="row-category-line" />
                 </div>
 
-                {/* 3 Square Cards Grid with Alternating Green & White Borders */}
-                <div className="row-cards-grid">
-                  {section.cards.map((item, idx) => {
-                    const cardKey = `${sIdx}-${idx}`
-                    const isDismissed = dismissedCardKeys[cardKey]
-                    const isGreen = (sIdx + idx) % 2 === 0
-                    const borderClass = isGreen ? 'border-green' : 'border-white'
+                {/* 3 Square Cards Grid / Carousel */}
+                <div 
+                  className="row-cards-grid"
+                  onTouchStart={(e) => handleTouchStart(sIdx, e)}
+                  onTouchEnd={(e) => handleTouchEnd(sIdx, section.cards.length, e)}
+                >
+                  <div 
+                    className="row-cards-track"
+                    style={{
+                      transform: `translateX(-${(carouselIndices[sIdx] || 0) * 100}%)`
+                    }}
+                  >
+                    {section.cards.map((item, idx) => {
+                      const cardKey = `${sIdx}-${idx}`
+                      const isDismissed = dismissedCardKeys[cardKey]
+                      const isGreen = (sIdx + idx) % 2 === 0
+                      const borderClass = isGreen ? 'border-green' : 'border-white'
 
-                    if (isDismissed) {
+                      if (isDismissed) {
+                        return (
+                          <div 
+                            className="offering-rect-card card-ghost-space" 
+                            key={idx}
+                            aria-hidden="true" 
+                          />
+                        )
+                      }
+
                       return (
                         <div 
-                          className="offering-rect-card card-ghost-space" 
+                          className={`offering-rect-card ${borderClass}`} 
                           key={idx}
-                          aria-hidden="true" 
-                        />
-                      )
-                    }
-
-                    return (
-                      <div 
-                        className={`offering-rect-card ${borderClass}`} 
-                        key={idx}
-                        aria-label={`${section.category} - ${item.title}`}
-                      >
-                        {/* Dismiss Cross Icon */}
-                        <button
-                          type="button"
-                          className="card-dismiss-cross-btn"
-                          onClick={(e) => handleDismissCard(cardKey, e)}
-                          title="Dismiss card temporarily"
-                          aria-label="Dismiss card"
+                          aria-label={`${section.category} - ${item.title}`}
                         >
-                          <X size={12} />
-                        </button>
+                          {/* Dismiss Cross Icon */}
+                          <button
+                            type="button"
+                            className="card-dismiss-cross-btn"
+                            onClick={(e) => handleDismissCard(cardKey, e)}
+                            title="Dismiss card temporarily"
+                            aria-label="Dismiss card"
+                          >
+                            <X size={12} />
+                          </button>
 
-                        {/* Ambient Radial Hover Aura */}
-                        <div className="card-ambient-glow" aria-hidden="true" />
+                          {/* Ambient Radial Hover Aura */}
+                          <div className="card-ambient-glow" aria-hidden="true" />
 
-                        {/* Card Top Row: Index Number */}
-                        <div className="card-header-row">
-                          <span className="card-index-num">0{idx + 1}</span>
+                          {/* Card Top Row: Index Number */}
+                          <div className="card-header-row">
+                            <span className="card-index-num">0{idx + 1}</span>
+                          </div>
+
+                          {/* Card Body: Title + Big Readable Designer Statement */}
+                          <div className="card-body-content">
+                            <h4 className="card-title">{item.title}</h4>
+                            <p className="card-main-statement">
+                              {item.text}
+                            </p>
+                          </div>
+
+                          {/* Card Footer: Capability Tag + Status Pulse Dot */}
+                          <div className="card-footer-row">
+                            <span className="card-capability-tag">{item.tag}</span>
+                            <span className="card-status-dot" aria-hidden="true" />
+                          </div>
                         </div>
+                      )
+                    })}
+                  </div>
+                </div>
 
-                        {/* Card Body: Title + Big Readable Designer Statement */}
-                        <div className="card-body-content">
-                          <h4 className="card-title">{item.title}</h4>
-                          <p className="card-main-statement">
-                            {item.text}
-                          </p>
-                        </div>
+                {/* Mobile Phone Sliding Controls with Continuous Loop */}
+                <div className="offer-carousel-controls">
+                  <button 
+                    type="button" 
+                    className="offer-carousel-arrow" 
+                    onClick={() => handlePrevCard(sIdx, section.cards.length)}
+                    aria-label="Previous card in loop"
+                    title="Previous card"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
 
-                        {/* Card Footer: Capability Tag + Status Pulse Dot */}
-                        <div className="card-footer-row">
-                          <span className="card-capability-tag">{item.tag}</span>
-                          <span className="card-status-dot" aria-hidden="true" />
-                        </div>
-                      </div>
-                    )
-                  })}
+                  <div className="offer-carousel-dots">
+                    {section.cards.map((_, cIdx) => (
+                      <button
+                        key={cIdx}
+                        type="button"
+                        className={`offer-carousel-dot ${(carouselIndices[sIdx] || 0) === cIdx ? 'active' : ''}`}
+                        onClick={() => setCarouselIndices(prev => ({ ...prev, [sIdx]: cIdx }))}
+                        aria-label={`Go to card 0${cIdx + 1}`}
+                        title={`Card 0${cIdx + 1}`}
+                      >
+                        <span className="dot-num">0{cIdx + 1}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button 
+                    type="button" 
+                    className="offer-carousel-arrow" 
+                    onClick={() => handleNextCard(sIdx, section.cards.length)}
+                    aria-label="Next card in loop"
+                    title="Next card"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
 
                 {/* Row Footer Button: Flat Green "Build & Simulate" */}
@@ -247,12 +339,27 @@ export default function WhatWeOffer({ onOpenFacility }) {
                   <button 
                     className="btn-lets-understand"
                     onClick={() => {
+                      let targetPath = null;
                       if (section.category === 'NETWORK TOPOLOGIES' || section.facilityId === 'multi-mesh') {
-                        navigate('/topologies');
+                        targetPath = '/topologies';
                       } else if (section.category === 'CONTENT DELIVERY NETWORK' || section.facilityId === 'packet-trace' || section.facilityId === 'cdn') {
-                        navigate('/cdn');
+                        targetPath = '/cdn';
                       } else if (section.category === 'DATA STRUCTURES & ALGORITHMS' || section.facilityId === 'dsa-algo' || section.facilityId === 'dsa') {
-                        navigate('/dsa');
+                        targetPath = '/dsa';
+                      }
+
+                      if (!isAuthenticated) {
+                        navigate('/login', {
+                          state: {
+                            from: targetPath || '/topologies',
+                            message: 'Please sign in to access Netrium laboratory simulations'
+                          }
+                        });
+                        return;
+                      }
+
+                      if (targetPath) {
+                        navigate(targetPath);
                       } else if (onOpenFacility) {
                         onOpenFacility(section.facilityId);
                       }

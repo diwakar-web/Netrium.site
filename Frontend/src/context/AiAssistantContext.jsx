@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { getApiUrl, safeJsonParse } from '../utils/api';
 
 const AiAssistantContext = createContext(null);
 
@@ -84,16 +85,13 @@ export function AiAssistantProvider({ children }) {
     setIsLoading(true);
 
     try {
-      // Resolve backend base URL
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-      
       const payloadHistory = messages
         .map(m => ({
           role: m.role === 'user' ? 'user' : 'model',
           text: m.text
         }));
 
-      const res = await fetch(`${backendUrl}/api/ai/chat`, {
+      const res = await fetch(getApiUrl('/api/ai/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -105,7 +103,7 @@ export function AiAssistantProvider({ children }) {
         })
       });
 
-      const data = await res.json();
+      const data = await safeJsonParse(res);
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || 'Error generating AI response');
@@ -123,7 +121,7 @@ export function AiAssistantProvider({ children }) {
       const errorMsg = {
         id: `err-${Date.now()}`,
         role: 'assistant',
-        text: `### Connection Notice\n\nI encountered an issue communicating with the NetAI gateway: \n\n\`${err.message || 'Network error'}\`\n\nPlease ensure your backend server is active at \`http://localhost:5000\`.`,
+        text: `### Connection Notice\n\nI encountered an issue communicating with the NetAI gateway: \n\n\`${err.message || 'Network error'}\`\n\nPlease ensure your backend server is accessible at \`${getApiUrl()}\`.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         model: 'system-notice'
       };

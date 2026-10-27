@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider, githubProvider, signInWithPopup, signOut } from '../lib/firebase';
+import { getApiUrl, safeJsonParse } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -29,12 +30,12 @@ export function AuthProvider({ children }) {
       const activeToken = localStorage.getItem(TOKEN_KEY);
       if (activeToken) {
         try {
-          const res = await fetch('/api/auth/jwt-status', {
+          const res = await fetch(getApiUrl('/api/auth/jwt-status'), {
             headers: {
               'Authorization': `Bearer ${activeToken}`
             }
           });
-          const data = await res.json();
+          const data = await safeJsonParse(res);
           if (data.isValid) {
             setJwtDetails(data);
           } else {
@@ -62,12 +63,12 @@ export function AuthProvider({ children }) {
    * Send 6-digit OTP to user email (First-time account creation ONLY)
    */
   const sendOtp = async (email, name) => {
-    const res = await fetch('/api/auth/send-otp', {
+    const res = await fetch(getApiUrl('/api/auth/send-otp'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, name })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to dispatch verification OTP');
     }
@@ -78,12 +79,12 @@ export function AuthProvider({ children }) {
    * Verify OTP and complete registration, storing user in MongoDB and issuing dedicated JWT
    */
   const verifyAndRegister = async ({ name, email, password, otp }) => {
-    const res = await fetch('/api/auth/verify-and-register', {
+    const res = await fetch(getApiUrl('/api/auth/verify-and-register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, otp })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Registration verification failed');
     }
@@ -99,12 +100,12 @@ export function AuthProvider({ children }) {
    * Direct Login with Email and Password (NO OTP on login)
    */
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to sign in');
     }
@@ -124,7 +125,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
-      const res = await fetch('/api/auth/firebase-login', {
+      const res = await fetch(getApiUrl('/api/auth/firebase-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,7 +137,7 @@ export function AuthProvider({ children }) {
         })
       });
 
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (!res.ok) {
         throw new Error(data.message || 'Google authentication synchronization failed');
       }
@@ -160,7 +161,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, githubProvider);
       const firebaseUser = result.user;
 
-      const res = await fetch('/api/auth/firebase-login', {
+      const res = await fetch(getApiUrl('/api/auth/firebase-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -172,7 +173,7 @@ export function AuthProvider({ children }) {
         })
       });
 
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (!res.ok) {
         throw new Error(data.message || 'GitHub authentication synchronization failed');
       }
@@ -196,12 +197,12 @@ export function AuthProvider({ children }) {
     if (!activeToken) return null;
 
     try {
-      const res = await fetch('/api/auth/jwt-status', {
+      const res = await fetch(getApiUrl('/api/auth/jwt-status'), {
         headers: {
           'Authorization': `Bearer ${activeToken}`
         }
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       setJwtDetails(data);
       return data;
     } catch (err) {
@@ -218,12 +219,12 @@ export function AuthProvider({ children }) {
     if (!activeToken) return null;
 
     try {
-      const res = await fetch('/api/auth/profile', {
+      const res = await fetch(getApiUrl('/api/auth/profile'), {
         headers: {
           'Authorization': `Bearer ${activeToken}`
         }
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (res.ok && data.user) {
         setUser(data.user);
         localStorage.setItem(USER_KEY, JSON.stringify(data.user));
@@ -245,7 +246,7 @@ export function AuthProvider({ children }) {
       throw new Error('Not authenticated. Please log in.');
     }
 
-    const res = await fetch('/api/auth/profile', {
+    const res = await fetch(getApiUrl('/api/auth/profile'), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -254,7 +255,7 @@ export function AuthProvider({ children }) {
       body: JSON.stringify(profileData)
     });
 
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to update profile');
     }
@@ -286,12 +287,12 @@ export function AuthProvider({ children }) {
    * Request 6-digit OTP for Forgot Password
    */
   const forgotPasswordSendOtp = async (email) => {
-    const res = await fetch('/api/auth/forgot-password/send-otp', {
+    const res = await fetch(getApiUrl('/api/auth/forgot-password/send-otp'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to dispatch recovery code.');
     }
@@ -302,12 +303,12 @@ export function AuthProvider({ children }) {
    * Verify recovery OTP
    */
   const forgotPasswordVerifyOtp = async (email, otp) => {
-    const res = await fetch('/api/auth/forgot-password/verify-otp', {
+    const res = await fetch(getApiUrl('/api/auth/forgot-password/verify-otp'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Passcode verification failed.');
     }
@@ -318,12 +319,12 @@ export function AuthProvider({ children }) {
    * Update password with verified OTP and login
    */
   const forgotPasswordReset = async (email, otp, newPassword) => {
-    const res = await fetch('/api/auth/forgot-password/reset', {
+    const res = await fetch(getApiUrl('/api/auth/forgot-password/reset'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp, newPassword })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to update password.');
     }
@@ -339,12 +340,12 @@ export function AuthProvider({ children }) {
    * Continue without updating password using verified OTP
    */
   const forgotPasswordContinue = async (email, otp) => {
-    const res = await fetch('/api/auth/forgot-password/continue', {
+    const res = await fetch(getApiUrl('/api/auth/forgot-password/continue'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp })
     });
-    const data = await res.json();
+    const data = await safeJsonParse(res);
     if (!res.ok) {
       throw new Error(data.message || 'Failed to authenticate session.');
     }

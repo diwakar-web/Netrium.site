@@ -302,3 +302,56 @@
     padding: 0.5rem;
   }
 }
+
+/* Mobile Optimized Vision Section (No Canvas, Instant Load) */
+.our-vision-mobile {
+  position: relative;
+  width: 100%;
+  background: #00bf63;
+  padding: 56px 16px 48px 16px;
+  box-sizing: border-box;
+}
+
+.vision-mobile-content {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Stack Sans Notch', sans-serif;
+}
+
+.our-vision-mobile .vision-header {
+  pointer-events: auto;
+}
+
+.our-vision-mobile .vision-subtitle {
+  white-space: normal;
+  color: #022c22;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.our-vision-mobile .vision-problems-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.our-vision-mobile .vision-card {
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.our-vision-mobile .solution-inner {
+  flex-direction: column;
+  gap: 14px;
+}
+
+.our-vision-mobile .vision-launch-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 13px;
+}
+
