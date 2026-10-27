@@ -4,6 +4,9 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import statRoutes from './routes/statRoutes.js';
 
 
 const app = express();
@@ -40,6 +43,9 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/stats', statRoutes);
 
 // Public Configuration Endpoint (loads strictly from environment variables)
 app.get('/api/config/maps', (req, res) => {

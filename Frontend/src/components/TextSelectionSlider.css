@@ -1,0 +1,136 @@
+/* Floating Text Selection Slider (Near Cursor / Highlight) */
+.netai-selection-slider {
+  position: fixed;
+  z-index: 10005;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  background: rgba(10, 14, 12, 0.94);
+  border: 1px solid rgba(0, 191, 99, 0.45);
+  border-radius: 9999px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(0, 191, 99, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: netaiSliderPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+  user-select: none;
+}
+
+@keyframes netaiSliderPop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.netai-slider-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(0, 191, 99, 0.3) 0%, rgba(2, 44, 34, 0.2) 50%, rgba(0, 191, 99, 0.3) 100%);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.netai-slider-divider {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 2px;
+}
+
+.netai-slider-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: #e2e8f0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.netai-slider-btn:hover {
+  background: rgba(0, 191, 99, 0.15);
+  color: #00bf63;
+  box-shadow: 0 0 12px rgba(0, 191, 99, 0.25);
+}
+
+.netai-slider-btn:active {
+  transform: scale(0.96);
+}
+
+.netai-slider-btn .btn-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.netai-slider-btn:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* Copy Success State */
+.netai-slider-btn.is-copied {
+  background: rgba(0, 191, 99, 0.22);
+  color: #00bf63;
+}
+
+.netai-slider-btn .success-icon {
+  color: #00bf63;
+}
+
+/* Ask NetAI Button with green highlight */
+.netai-slider-btn.ask-btn {
+  color: #ffffff;
+}
+
+.netai-slider-btn.ask-btn:hover {
+  background: rgba(0, 191, 99, 0.22);
+  color: #00ff88;
+}
+
+.netai-slider-btn .pulse-icon {
+  color: #00bf63;
+  animation: netaiPulse 2s infinite ease-in-out;
+}
+
+@keyframes netaiPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px #00bf63);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 6px #00ff88);
+  }
+}
+
+/* Responsive adjustment for small devices */
+@media (max-width: 640px) {
+  .netai-selection-slider {
+    padding: 4px 6px;
+    gap: 2px;
+  }
+  .netai-slider-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+}

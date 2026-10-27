@@ -24,6 +24,8 @@ import CdnPage from './pages/CdnPage'
 import DsaPage from './pages/DsaPage'
 import DsaLabPage from './pages/DsaLabPage'
 import ScrollToTop from './components/ScrollToTop'
+import TextSelectionSlider from './components/TextSelectionSlider'
+import NetAiDrawer from './components/NetAiDrawer'
 import './App.css'
 
 function LandingHome() {
@@ -173,6 +175,8 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <TextSelectionSlider />
+      <NetAiDrawer />
       <Routes>
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />

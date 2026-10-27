@@ -3,10 +3,10 @@ import { MessageSquareQuote, X } from 'lucide-react'
 
 export default function UserReviews() {
   const [isDismissed, setIsDismissed] = useState(false)
-  const reviews = [
+  const [reviews, setReviews] = useState([
     {
       firstName: 'Aarav',
-      review: 'Netrium\'s Raft consensus visualizer finally made distributed state machines click for our entire research group.',
+      review: "Netrium's Raft consensus visualizer finally made distributed state machines click for our entire research group.",
       role: 'Systems Researcher'
     },
     {
@@ -29,15 +29,55 @@ export default function UserReviews() {
       role: 'Kernel Enthusiast',
       review: 'From virtual memory paging to mesh networks, Netrium turns abstract CS theory into pure intuition.'
     }
-  ]
+  ])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [progressKey, setProgressKey] = useState(0)
 
+  // Fetch reviews from MongoDB database
+  useEffect(() => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+    fetch(`${backendUrl}/api/reviews`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+          const dbReviews = data.reviews.map(r => ({
+            id: r._id,
+            firstName: r.name ? r.name.trim().split(' ')[0] : 'Researcher',
+            review: r.comment,
+            role: r.role || 'Systems Researcher'
+          }))
+          setReviews(dbReviews)
+        }
+      })
+      .catch(err => console.warn('[UserReviews] Failed to load from database, using cached:', err))
+
+    // Real-time listener when a user submits a review in CommunityReviews
+    const handleNewReview = (e) => {
+      const newRev = e.detail
+      if (newRev) {
+        setReviews(prev => [
+          {
+            id: newRev._id || `user-${Date.now()}`,
+            firstName: newRev.name ? newRev.name.trim().split(' ')[0] : 'Researcher',
+            review: newRev.comment,
+            role: newRev.role || 'Systems Researcher'
+          },
+          ...prev
+        ])
+        setCurrentIndex(0)
+        setProgressKey(k => k + 1)
+      }
+    }
+
+    window.addEventListener('netrium:review-added', handleNewReview)
+    return () => window.removeEventListener('netrium:review-added', handleNewReview)
+  }, [])
+
   // Auto-switch review every 5 seconds (5000ms)
   useEffect(() => {
-    if (isPaused) return
+    if (isPaused || reviews.length === 0) return
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length)
       setProgressKey((k) => k + 1)
@@ -50,7 +90,8 @@ export default function UserReviews() {
     return <div className="reviews-ghost-space" />
   }
 
-  const currentReview = reviews[currentIndex]
+  const currentReview = reviews[currentIndex] || reviews[0] || { firstName: 'Researcher', role: 'Systems Engineer', review: '' }
+  const displayDots = reviews.slice(0, Math.min(8, reviews.length))
 
   return (
     <div 
@@ -75,12 +116,12 @@ export default function UserReviews() {
             <span className="review-author-name">{currentReview.firstName}</span>
             <span className="review-author-badge">{currentReview.role}</span>
           </div>
-          {/* Progress Indicators for 5 Reviews */}
+          {/* Progress Indicators for Reviews */}
           <div className="review-dots">
-            {reviews.map((_, idx) => (
+            {displayDots.map((_, idx) => (
               <button
                 key={idx}
-                className={`review-dot ${idx === currentIndex ? 'active' : ''}`}
+                className={`review-dot ${idx === (currentIndex % displayDots.length) ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentIndex(idx)
                   setProgressKey((k) => k + 1)

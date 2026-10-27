@@ -103,6 +103,56 @@
   align-items: center;
 }
 
+.netai-nav-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+.netai-nav-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 18px;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+  z-index: 60;
+}
+
+.netai-nav-toggle-btn:hover {
+  background: #000000;
+  border-color: #00bf63;
+  color: #00bf63;
+  box-shadow: 0 0 16px rgba(0, 191, 99, 0.3);
+}
+
+.netai-nav-toggle-btn.active {
+  background: #022c22;
+  border-color: #00bf63;
+  color: #00bf63;
+  box-shadow: 0 0 14px rgba(0, 191, 99, 0.35);
+}
+
+.netai-btn-sparkle {
+  color: #00bf63;
+  animation: netaiPulse 2.2s infinite ease-in-out;
+}
+
+.netai-nav-toggle-btn:hover .netai-btn-sparkle {
+  color: #00ff88;
+  transform: rotate(15deg) scale(1.1);
+}
+
 /* ==========================================================================
    LOGIN BUTTON (Replaces Account button, redirects to /login)
    ========================================================================== */

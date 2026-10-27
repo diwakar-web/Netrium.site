@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, User as UserIcon, FlaskConical, LogOut, ChevronDown } from 'lucide-react';
+import { LogIn, User as UserIcon, FlaskConical, LogOut, ChevronDown, Sparkles } from 'lucide-react';
 import StaggeredMenu from './StaggeredMenu';
 import Dismissible from './Dismissible';
 import { useAuth } from '../context/AuthContext';
+import { useAiAssistant } from '../context/AiAssistantContext';
 import darkLogo from '../assets/DarkLogo.png';
 import './Navbar.css';
 
 export default function Navbar({ onOpenFacility }) {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const { toggleDrawer, isOpen: isAiOpen } = useAiAssistant();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -61,6 +63,20 @@ export default function Navbar({ onOpenFacility }) {
 
         {/* Right side: Dismissible Menu & Login / User Buttons */}
         <div className="navbar-right-actions">
+          {/* NetAI Assistant Toggle Button */}
+          <Dismissible inline as="div" className="netai-nav-container">
+            <button
+              type="button"
+              className={`netai-nav-toggle-btn ${isAiOpen ? 'active' : ''}`}
+              onClick={toggleDrawer}
+              aria-label="Toggle NetAI Co-Pilot"
+              title="Open NetAI Co-Pilot"
+            >
+              <Sparkles size={14} className="netai-btn-sparkle" />
+              <span className="netai-btn-label">{isAiOpen ? 'Close' : 'NetAI'}</span>
+            </button>
+          </Dismissible>
+
           <Dismissible inline as="div" className="staggered-menu-nav-container">
             <StaggeredMenu
               position="right"

@@ -6,14 +6,33 @@ import avatar3 from '../assets/avatar3.jpg'
 import avatar4 from '../assets/avatar4.jpg'
 
 export default function ActiveNodes() {
-  const [nodeCount, setNodeCount] = useState(52480)
+  const [nodeCount, setNodeCount] = useState(() => {
+    const cached = localStorage.getItem('netrium_lab_users_count')
+    return cached ? parseInt(cached, 10) : 850
+  })
 
-  // Subtle real-time live simulation increments
+  // Increment counter by 1 on every site loading via database API
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNodeCount((prev) => prev + Math.floor(Math.random() * 3) - 1)
-    }, 4000)
-    return () => clearInterval(interval)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+    fetch(`${backendUrl}/api/stats/visit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && typeof data.count === 'number') {
+          setNodeCount(data.count)
+          localStorage.setItem('netrium_lab_users_count', String(data.count))
+        }
+      })
+      .catch((err) => {
+        console.warn('[ActiveNodes] Stat visit increment fallback:', err)
+        setNodeCount((prev) => {
+          const next = prev + 1
+          localStorage.setItem('netrium_lab_users_count', String(next))
+          return next
+        })
+      })
   }, [])
 
   return (
@@ -47,7 +66,7 @@ export default function ActiveNodes() {
       <div className="active-nodes-info">
         <div className="active-nodes-count">
           <span className="live-dot animate-pulse-live"></span>
-          <strong>{(nodeCount / 1000).toFixed(1)}K+</strong>
+          <strong>{nodeCount}</strong>
           <span>have used</span>
         </div>
         <p className="active-nodes-subtitle">our laboratory</p>

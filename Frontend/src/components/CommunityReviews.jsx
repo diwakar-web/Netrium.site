@@ -22,7 +22,6 @@ import './CommunityReviews.css'
 export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
   const [activeRowIndex, setActiveRowIndex] = useState(0)
   const [isReviewBoxOpen, setIsReviewBoxOpen] = useState(false)
-  const [userReviewsList, setUserReviewsList] = useState([])
   const [newReview, setNewReview] = useState({
     name: '',
     role: '',
@@ -133,7 +132,25 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     }
   ]
 
-  const allReviews = useMemo(() => [...userReviewsList, ...initialReviews], [userReviewsList])
+  const [dbReviews, setDbReviews] = useState([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Fetch reviews from MongoDB database on mount
+  useEffect(() => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+    fetch(`${backendUrl}/api/reviews`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+          setDbReviews(data.reviews)
+        }
+      })
+      .catch(err => console.warn('[CommunityReviews] Failed to load reviews from DB:', err))
+  }, [])
+
+  const allReviews = useMemo(() => {
+    return dbReviews.length > 0 ? dbReviews : initialReviews
+  }, [dbReviews, initialReviews])
 
   const cardsPerRow = 4
   const totalRows = Math.ceil(allReviews.length / cardsPerRow) || 1
@@ -161,31 +178,58 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
     'TESTED & LOVED BY ENGINEERS WORLDWIDE'
   ]
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault()
-    if (!newReview.name.trim() || !newReview.comment.trim()) return
+    if (!newReview.name.trim() || !newReview.comment.trim() || isSubmitting) return
 
-    const created = {
-      id: `user-${Date.now()}`,
-      tag: newReview.tag.toUpperCase(),
-      name: newReview.name.trim(),
-      role: newReview.role.trim() || 'Early Tester',
-      rating: newReview.rating,
-      comment: newReview.comment.trim()
+    setIsSubmitting(true)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
+    try {
+      const res = await fetch(`${backendUrl}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newReview.name.trim(),
+          role: newReview.role.trim() || 'Early Tester',
+          rating: newReview.rating,
+          tag: newReview.tag,
+          comment: newReview.comment.trim()
+        })
+      })
+
+      const data = await res.json()
+      if (data.success && data.review) {
+        setDbReviews(prev => [data.review, ...prev])
+        // Notify UserReviews sliding panel on top right
+        window.dispatchEvent(new CustomEvent('netrium:review-added', { detail: data.review }))
+      }
+    } catch (err) {
+      console.error('[CommunityReviews] Error posting review:', err)
+      const fallback = {
+        _id: `user-${Date.now()}`,
+        name: newReview.name.trim(),
+        role: newReview.role.trim() || 'Early Tester',
+        rating: newReview.rating,
+        tag: newReview.tag,
+        comment: newReview.comment.trim()
+      }
+      setDbReviews(prev => [fallback, ...prev])
+      window.dispatchEvent(new CustomEvent('netrium:review-added', { detail: fallback }))
+    } finally {
+      setIsSubmitting(false)
+      setNewReview({
+        name: '',
+        role: '',
+        rating: 5,
+        tag: 'Operating Systems',
+        comment: ''
+      })
+      setIsReviewBoxOpen(false)
+      setActiveRowIndex(0)
+      setSubmittedToast(true)
+      setTimeout(() => setSubmittedToast(false), 4500)
     }
-
-    setUserReviewsList([created, ...userReviewsList])
-    setNewReview({
-      name: '',
-      role: '',
-      rating: 5,
-      tag: 'Operating Systems',
-      comment: ''
-    })
-    setIsReviewBoxOpen(false)
-    setActiveRowIndex(0)
-    setSubmittedToast(true)
-    setTimeout(() => setSubmittedToast(false), 4500)
   }
 
   return (
@@ -252,7 +296,7 @@ export default function CommunityReviews({ onOpenAuth, onOpenFacility }) {
                 .toUpperCase() || 'NT'
 
               return (
-                <Dismissible as="div" className="clean-review-card" key={rev.id} crossPosition="inside-right">
+                <Dismissible as="div" className="clean-review-card" key={rev._id || rev.id} crossPosition="inside-right">
                   {/* Card Header: Tag & 5-Stars */}
                   <div className="clean-card-header">
                     <span className="clean-tag-badge">
