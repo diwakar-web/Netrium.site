@@ -5,11 +5,9 @@ import { Maximize2, Minimize2, CheckSquare, Square, Layers, MapPin } from 'lucid
 import { getApiUrl, safeJsonParse } from '../utils/api';
 import './CdnMap.css';
 
-const DEFAULT_CARTO_KEY = 'cb1_4qxy_1_95fcdfd64bd55759deaea69f';
-
 // Carto Tile Configuration - strictly no place names/labels, pure dark aesthetic
 const getTileConfig = (apiKey = '') => {
-  const cleanKey = (apiKey || import.meta.env.VITE_CARTO_API_KEY || DEFAULT_CARTO_KEY).trim();
+  const cleanKey = (apiKey || import.meta.env.VITE_CARTO_API_KEY || '').trim();
   const keyParam = cleanKey ? `?key=${cleanKey}` : '';
 
   // dark_nolabels strips all place names, city labels, and roads
@@ -64,7 +62,7 @@ export default function CdnMap({
   const [mapTheme, setMapTheme] = useState('stealth'); // Default strictly to 'stealth' (black stealth map)
   const [zoomLevel, setZoomLevel] = useState(2);
   const [continuousT, setContinuousT] = useState(0);
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_CARTO_API_KEY || DEFAULT_CARTO_KEY);
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_CARTO_API_KEY || '');
 
   // Securely retrieve Carto Map API key from backend if not pre-injected by Vite
   useEffect(() => {
