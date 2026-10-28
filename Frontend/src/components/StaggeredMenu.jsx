@@ -1,6 +1,7 @@
 import React, { useCallback, useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { gsap } from 'gsap';
+import { X } from 'lucide-react';
 import './StaggeredMenu.css';
 
 export const StaggeredMenu = ({
@@ -439,6 +440,20 @@ export const StaggeredMenu = ({
             aria-hidden={!open}
             style={{ pointerEvents: open ? 'auto' : 'none' }}
           >
+            {/* Top Bar with Navigation Title and Cross (Close) Button */}
+            <div className="sm-panel-topbar">
+              <span className="sm-panel-topbar-tag">NETRIUM // NAVIGATION</span>
+              <button
+                type="button"
+                className="sm-panel-close-btn"
+                onClick={closeMenu}
+                aria-label="Close navigation menu"
+                title="Close menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
             <div className="sm-panel-inner">
               <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
                 {items && items.length ? (

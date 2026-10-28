@@ -407,10 +407,10 @@ export default function NetAiDrawer() {
               type="button"
               className="action-icon-btn close-btn"
               onClick={closeDrawer}
-              title="Close NetAI panel (Esc)"
-              aria-label="Close NetAI drawer"
+              title="Close chat panel (Esc)"
+              aria-label="Close chat"
             >
-              <X size={17} />
+              <X size={20} />
             </button>
           </div>
         </header>

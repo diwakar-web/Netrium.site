@@ -116,10 +116,6 @@ export default function TopologyLabPage() {
     nodesRef.current = nodes;
   }, [nodes]);
 
-  // More Practical: Fault Injection & Traffic Modes
-  const [trafficMode, setTrafficMode] = useState('unicast'); // 'unicast' | 'broadcast' | 'collision'
-  const [failedLinks, setFailedLinks] = useState({});
-
   // Reset nodes when topology changes
   useEffect(() => {
     setNodes([
@@ -130,7 +126,6 @@ export default function TopologyLabPage() {
       { id: 'node-e', label: 'E', name: 'Node E', role: 'node', status: 'online' }
     ]);
     handleStopSimulation();
-    setFailedLinks({});
   }, [currentTopoKey]);
 
   // Log message helper
@@ -873,21 +868,6 @@ export default function TopologyLabPage() {
                   <h3 className="theory-card-title">{currentTheory.protocolMechanics.title}</h3>
                 </div>
                 <p className="theory-body-text">{currentTheory.protocolMechanics.description}</p>
-
-                {/* Algorithm Pseudocode Terminal Box */}
-                <div className="theory-code-terminal">
-                  <div className="terminal-header">
-                    <div className="terminal-dots">
-                      <span className="dot red" />
-                      <span className="dot yellow" />
-                      <span className="dot green" />
-                    </div>
-                    <span className="terminal-title">{currentTheory.protocolMechanics.algorithmTitle}</span>
-                  </div>
-                  <pre className="terminal-pre">
-                    <code>{currentTheory.protocolMechanics.algorithmCode}</code>
-                  </pre>
-                </div>
               </div>
 
               {/* Section 3: Mathematical Modeling & Complexity Formulations */}
@@ -1077,24 +1057,6 @@ export default function TopologyLabPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Quick Launch Simulation Card */}
-              <div className="theory-simulation-cta-card">
-                <div className="cta-icon-wrap">
-                  <Zap size={20} />
-                </div>
-                <h4>Interactive Simulation</h4>
-                <p>Observe live packet routing, frame headers, and link states on this topology.</p>
-                <button
-                  type="button"
-                  className="theory-launch-sim-btn"
-                  onClick={() => setActiveTab('practical')}
-                >
-                  <span>Launch Functional Model</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-
             </div>
           </div>
         )}
@@ -1213,48 +1175,11 @@ export default function TopologyLabPage() {
                         <span className="node-avatar-badge">{node.label}</span>
                       </div>
 
-                      <div className="node-inputs-col">
-                        <input
-                          type="text"
-                          className="node-rename-input"
-                          value={node.name}
-                          onChange={(e) => handleNameChange(node.id, e.target.value)}
-                          placeholder="Node name"
-                          disabled={isPlaying}
-                        />
-
-                        {/* Role selection dropdown */}
-                        <select
-                          className="node-role-select"
-                          value={node.role}
-                          onChange={(e) => handleRoleChange(node.id, e.target.value)}
-                          disabled={isPlaying}
-                        >
-                          {currentTopoKey === 'star' && (
-                            <>
-                              <option value="hub">Central Hub / Switch</option>
-                              <option value="node">Client Station</option>
-                            </>
-                          )}
-                          {currentTopoKey === 'tree' && (
-                            <>
-                              <option value="root">Root Core Switch</option>
-                              <option value="node">Branch / Leaf</option>
-                            </>
-                          )}
-                          {currentTopoKey === 'bus' && (
-                            <>
-                              <option value="node">Bus Station</option>
-                              <option value="terminator">Terminator Tap</option>
-                            </>
-                          )}
-                          {(currentTopoKey === 'ring' || currentTopoKey === 'mesh' || currentTopoKey === 'hybrid') && (
-                            <>
-                              <option value="node">Standard Node</option>
-                              <option value="gateway">Gateway / Monitor</option>
-                            </>
-                          )}
-                        </select>
+                      <div className="node-info-col">
+                        <span className="node-item-name">{node.name}</span>
+                        <span className={`node-role-badge ${node.role}`}>
+                          {node.role.toUpperCase()}
+                        </span>
                       </div>
 
                       {/* Online / Offline switch button */}
@@ -1265,19 +1190,65 @@ export default function TopologyLabPage() {
                         title={`Click to toggle ${node.name} online/offline`}
                       >
                         <span className={`status-dot ${node.status}`} />
-                        <span>{node.status === 'online' ? 'Active' : 'Down'}</span>
+                        <span>{node.status === 'online' ? 'Online' : 'Down'}</span>
                       </button>
                     </div>
                   ))}
                 </div>
 
-                {/* Example Quick Action Helper Box */}
-                <div className="sim-example-helper">
-                  <div className="helper-title">
-                    <Zap size={14} />
-                    <span>{currentScenario.title}</span>
+                {/* Quick Failure Injection Helper Buttons */}
+                <div className="sim-quick-actions">
+                  <span className="quick-actions-label">Fault Injection:</span>
+                  <div className="quick-actions-row">
+                    {currentTopoKey === 'star' && (
+                      <button
+                        type="button"
+                        className="quick-fault-pill"
+                        onClick={() => {
+                          const hub = nodes.find(n => n.role === 'hub') || nodes[0];
+                          handleToggleNodeHealth(hub.id);
+                        }}
+                      >
+                        <AlertTriangle size={12} />
+                        <span>Sever Hub Switch</span>
+                      </button>
+                    )}
+                    {currentTopoKey === 'tree' && (
+                      <button
+                        type="button"
+                        className="quick-fault-pill"
+                        onClick={() => {
+                          const root = nodes[0];
+                          handleToggleNodeHealth(root.id);
+                        }}
+                      >
+                        <AlertTriangle size={12} />
+                        <span>Sever Root Switch</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="quick-fault-pill"
+                      onClick={() => {
+                        const targetNode = nodes.find(n => n.id === targetNodeId) || nodes[nodes.length - 1];
+                        handleToggleNodeHealth(targetNode.id);
+                      }}
+                    >
+                      <Zap size={12} />
+                      <span>Sever Target</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="quick-fault-pill restore"
+                      onClick={() => {
+                        setNodes(prev => prev.map(n => ({ ...n, status: 'online' })));
+                        addLog('Restored all network nodes to ONLINE healthy state.', 'success');
+                      }}
+                    >
+                      <RefreshCw size={12} />
+                      <span>Restore All</span>
+                    </button>
                   </div>
-                  <p>{currentScenario.desc}</p>
                 </div>
               </div>
             </div>
@@ -1932,154 +1903,6 @@ export default function TopologyLabPage() {
               topologyType={currentTopoKey}
               currentTopoName={currentTopo?.name || 'Network Topology'}
             />
-
-            <div className="more-grid" style={{ marginTop: '32px' }}>
-              
-              {/* Failure Impact Analysis Card */}
-              <div className="more-card">
-                <div className="more-card-header">
-                  <AlertTriangle size={18} className="warn-icon" />
-                  <h3>Fault Injection & Single Point of Failure Analysis</h3>
-                </div>
-                <p className="more-desc">
-                  Simulate network cable disconnections, hardware breakdowns, and packet collisions in real time.
-                </p>
-
-                <div className="fault-test-buttons-row">
-                  <button
-                    type="button"
-                    className="fault-scenario-btn"
-                    onClick={() => {
-                      // Star: break hub
-                      const hub = nodes.find(n => n.role === 'hub') || nodes[0];
-                      handleToggleNodeHealth(hub.id);
-                    }}
-                  >
-                    <span>Sever Central Hub (Star Test)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="fault-scenario-btn"
-                    onClick={() => {
-                      // Ring: break 1 node
-                      handleToggleNodeHealth(nodes[1]?.id || 'node-b');
-                    }}
-                  >
-                    <span>Sever Ring Link (Token Ring Test)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="fault-scenario-btn"
-                    onClick={() => {
-                      // Restore all nodes
-                      setNodes(prev => prev.map(n => ({ ...n, status: 'online' })));
-                      addLog('Restored all nodes to 100% HEALTHY online state.', 'success');
-                    }}
-                  >
-                    <span>Restore All Nodes to Online</span>
-                  </button>
-                </div>
-
-                {/* Impact assessment summary */}
-                <div className="fault-verdict-box">
-                  <h4>Topology Resiliency Matrix</h4>
-                  <div className="resiliency-specs-grid">
-                    <div className="spec-metric">
-                      <span className="metric-title">Fault Tolerance Rating</span>
-                      <span className="metric-val">
-                        {currentTopoKey === 'mesh' ? '99.999% (Full P2P)' : currentTopoKey === 'star' ? '75% (Hub Vulnerable)' : '40% (Single Loop)'}
-                      </span>
-                    </div>
-                    <div className="spec-metric">
-                      <span className="metric-title">Cable Requirement</span>
-                      <span className="metric-val">
-                        {currentTopoKey === 'mesh' ? 'O(N²) High' : currentTopoKey === 'star' ? 'O(N) Moderate' : 'O(N) Low'}
-                      </span>
-                    </div>
-                    <div className="spec-metric">
-                      <span className="metric-title">Broadcast Domain</span>
-                      <span className="metric-val">Single Shared Subnet</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Traffic Mode Experimenter */}
-              <div className="more-card">
-                <div className="more-card-header">
-                  <Radio size={18} />
-                  <h3>Transmission Modes: Unicast vs Broadcast</h3>
-                </div>
-                <p className="more-desc">
-                  Explore how frames propagate across broadcast domains versus switched unicast segments.
-                </p>
-
-                <div className="traffic-mode-options">
-                  <label className={`traffic-radio-pill ${trafficMode === 'unicast' ? 'active' : ''}`}>
-                    <input
-                      type="radio"
-                      name="traffic"
-                      value="unicast"
-                      checked={trafficMode === 'unicast'}
-                      onChange={() => {
-                        setTrafficMode('unicast');
-                        addLog('Switched to UNICAST mode: Direct address filtering active.', 'info');
-                      }}
-                    />
-                    <span>Unicast (Directed)</span>
-                  </label>
-
-                  <label className={`traffic-radio-pill ${trafficMode === 'broadcast' ? 'active' : ''}`}>
-                    <input
-                      type="radio"
-                      name="traffic"
-                      value="broadcast"
-                      checked={trafficMode === 'broadcast'}
-                      onChange={() => {
-                        setTrafficMode('broadcast');
-                        addLog('Switched to BROADCAST mode: All nodes receive frame simultaneously.', 'warning');
-                      }}
-                    />
-                    <span>Broadcast (All Nodes)</span>
-                  </label>
-
-                  <label className={`traffic-radio-pill ${trafficMode === 'collision' ? 'active' : ''}`}>
-                    <input
-                      type="radio"
-                      name="traffic"
-                      value="collision"
-                      checked={trafficMode === 'collision'}
-                      onChange={() => {
-                        setTrafficMode('collision');
-                        addLog('Switched to CSMA/CD SIMULATION: Multiple stations contend for line.', 'error');
-                      }}
-                    />
-                    <span>CSMA/CD Contention</span>
-                  </label>
-                </div>
-
-                <div className="mode-explanation-box">
-                  {trafficMode === 'unicast' && (
-                    <p>
-                      <strong>Unicast Transmission:</strong> Packet headers contain a specific destination MAC address (e.g. Node E). Only Node E inspects the packet; non-target stations ignore the frame.
-                    </p>
-                  )}
-                  {trafficMode === 'broadcast' && (
-                    <p>
-                      <strong>Broadcast Transmission:</strong> Packet is addressed to <code>FF:FF:FF:FF:FF:FF</code>. In Bus and unmanaged Hub networks, every connected station processes the packet interrupt.
-                    </p>
-                  )}
-                  {trafficMode === 'collision' && (
-                    <p>
-                      <strong>Carrier Sense Multiple Access with Collision Detection (CSMA/CD):</strong> When two stations transmit concurrently on a shared cable, voltage levels exceed thresholds, generating a jam signal and forcing random exponential backoff intervals.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-            </div>
           </div>
         )}
 

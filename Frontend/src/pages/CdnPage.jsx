@@ -31,7 +31,13 @@ import {
   Check,
   AlertTriangle,
   Terminal,
-  Database
+  Database,
+  RotateCcw,
+  Play,
+  CheckCircle2,
+  AlertCircle,
+  Wifi,
+  RefreshCw
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import HoloCard from '../components/HoloCard';
@@ -115,6 +121,7 @@ export default function CdnPage() {
   const [loadFluctuations, setLoadFluctuations] = useState(
     Object.keys(servers).filter(k => k !== 'origin').reduce((acc, key) => ({ ...acc, [key]: 0 }), {})
   );
+  const [customChaosPop, setCustomChaosPop] = useState('mumbai');
 
   // Payload Cache State
   const [inputText, setInputText] = useState('');
@@ -316,6 +323,18 @@ export default function CdnPage() {
       return updated;
     });
   };
+
+  const handleResetAllChaos = () => {
+    setWeather(Object.keys(servers).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setOverload(Object.keys(servers).filter(k => k !== 'origin').reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setOriginOverloaded(false);
+    addLog('CHAOS RESOLVED: All synthetic faults, storms, and CPU overloads cleared. Grid restored to nominal.');
+  };
+
+  const activeFaultsCount = 
+    (originOverloaded ? 1 : 0) + 
+    Object.values(weather).filter(Boolean).length + 
+    Object.values(overload).filter(Boolean).length;
 
   // Multi-Language Code Snippets for Theories Section
   const EDGE_CODE_SNIPPETS = {
@@ -1159,153 +1178,500 @@ public class EdgeReverseProxy {
         {/* ========================================================
             TAB 3: PRACTICAL ORIENTED (CHAOS LAB)
             ======================================================== */}
+        {/* ========================================================
+            TAB 3: PRACTICAL ORIENTED (CHAOS LAB) - 100% FULL WIDTH
+            ======================================================== */}
         {activeTab === 'chaos' && (
-          <div className="cdn-chaos-layout">
-            <div className="theory-main-column">
-              {/* Chaos Engineering Triggers */}
-              <div className="theory-concept-card">
-                <h3 className="theory-section-title">
+          <div className="cdn-chaos-layout-full">
+            {/* 1. Live Mesh Health & Chaos Status HUD */}
+            <div className="chaos-hud-strip">
+              <div className="chaos-hud-card">
+                <div className="chaos-hud-header">
+                  <span className="chaos-hud-label">Origin Cluster (San Francisco)</span>
+                  <span className={`chaos-status-pill ${originOverloaded ? 'danger' : 'success'}`}>
+                    {originOverloaded ? '100% CPU MELT' : 'NOMINAL'}
+                  </span>
+                </div>
+                <div className="chaos-hud-metric">
+                  <span className={`metric-val ${originOverloaded ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {originOverloaded ? '100%' : '12%'}
+                  </span>
+                  <span className="metric-sub">CPU Queue Load</span>
+                </div>
+                <button
+                  type="button"
+                  className={`chaos-hud-action-btn ${originOverloaded ? 'active' : ''}`}
+                  onClick={() => toggleOverload('origin')}
+                >
+                  <Flame size={13} />
+                  <span>{originOverloaded ? 'Restore Origin CPU' : 'Trigger 100% CPU Melt'}</span>
+                </button>
+              </div>
+
+              <div className="chaos-hud-card">
+                <div className="chaos-hud-header">
+                  <span className="chaos-hud-label">Subsea Cable / Storm Links</span>
+                  <span className={`chaos-status-pill ${Object.values(weather).some(Boolean) ? 'warning' : 'success'}`}>
+                    {Object.values(weather).some(Boolean) ? 'WEATHER LOSS' : 'ALL OPTIMAL'}
+                  </span>
+                </div>
+                <div className="chaos-hud-metric">
+                  <span className={`metric-val ${Object.values(weather).some(Boolean) ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {Object.values(weather).filter(Boolean).length}
+                  </span>
+                  <span className="metric-sub">Storm-Degraded Edge Links (+120ms)</span>
+                </div>
+                <div className="chaos-hud-subtext">
+                  {Object.entries(weather).filter(([_, v]) => v).map(([k]) => servers[k]?.name.split(' ')[0]).join(', ') || 'Zero link packet loss detected'}
+                </div>
+              </div>
+
+              <div className="chaos-hud-card">
+                <div className="chaos-hud-header">
+                  <span className="chaos-hud-label">Edge Hardware Queues</span>
+                  <span className={`chaos-status-pill ${Object.values(overload).some(Boolean) ? 'danger' : 'success'}`}>
+                    {Object.values(overload).some(Boolean) ? 'LOAD SHEDDING' : 'BALANCED'}
+                  </span>
+                </div>
+                <div className="chaos-hud-metric">
+                  <span className={`metric-val ${Object.values(overload).some(Boolean) ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {Object.values(overload).filter(Boolean).length}
+                  </span>
+                  <span className="metric-sub">Saturated POPs (95% CPU)</span>
+                </div>
+                <div className="chaos-hud-subtext">
+                  {Object.entries(overload).filter(([_, v]) => v).map(([k]) => servers[k]?.name.split(' ')[0]).join(', ') || 'Anycast distributing across all 15 POPs'}
+                </div>
+              </div>
+
+              <div className="chaos-hud-card reset-card">
+                <div className="chaos-hud-header">
+                  <span className="chaos-hud-label">Active Fault State</span>
+                  <span className={`chaos-status-pill ${activeFaultsCount > 0 ? 'danger live-pulse' : 'success'}`}>
+                    {activeFaultsCount} INJECTED
+                  </span>
+                </div>
+                <div className="chaos-hud-metric">
+                  <span className={`metric-val ${activeFaultsCount === 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {activeFaultsCount === 0 ? 'Grid Nominal' : `${activeFaultsCount} Active`}
+                  </span>
+                  <span className="metric-sub">Active Fault Conditions</span>
+                </div>
+                <button
+                  type="button"
+                  className="chaos-emergency-reset-btn"
+                  onClick={handleResetAllChaos}
+                  disabled={activeFaultsCount === 0}
+                >
+                  <RotateCcw size={14} />
+                  <span>Restore Grid / Clear Faults</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Chaos Engineering Fault Injection Suite */}
+            <div className="chaos-card-full">
+              <div className="chaos-card-header">
+                <div className="flex items-center gap-2">
                   <Flame size={18} className="text-rose-400" />
-                  <span>Chaos Engineering Fault Injection Suite</span>
-                </h3>
-                <p className="theory-body-p">
-                  Inject deterministic infrastructure failures to test Netrium Anycast re-routing, failover resilience, and origin protection under stress:
+                  <h3 className="chaos-card-title">Chaos Engineering Fault Injection Suite</h3>
+                </div>
+                <span className="chaos-header-badge">PRESET STRESS SCENARIOS</span>
+              </div>
+              <p className="chaos-card-desc">
+                Inject deterministic infrastructure failures to test Netrium Anycast re-routing, failover resilience, origin shielding, and cache stampede recovery:
+              </p>
+
+              <div className="chaos-preset-grid-v2">
+                <button
+                  type="button"
+                  className={`chaos-preset-card ${originOverloaded ? 'active' : ''}`}
+                  onClick={() => toggleOverload('origin')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge flame">
+                      <Flame size={16} />
+                    </span>
+                    <span className={`preset-toggle-status ${originOverloaded ? 'active' : ''}`}>
+                      {originOverloaded ? 'ACTIVE' : 'IDLE'}
+                    </span>
+                  </div>
+                  <h4 className="preset-name">Origin Server CPU Melt</h4>
+                  <p className="preset-desc">
+                    {originOverloaded ? 'Central origin locked at 100% CPU. Cache misses experience severe lag.' : 'Force central origin CPU queue to 100% capacity.'}
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: San Francisco</span>
+                    <span className="preset-tag">Origin Outage</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`chaos-preset-card ${weather.mumbai ? 'active' : ''}`}
+                  onClick={() => toggleWeather('mumbai')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge storm">
+                      <CloudRain size={16} />
+                    </span>
+                    <span className={`preset-toggle-status ${weather.mumbai ? 'active' : ''}`}>
+                      {weather.mumbai ? 'ACTIVE' : 'IDLE'}
+                    </span>
+                  </div>
+                  <h4 className="preset-name">Mumbai Undersea Cyclone</h4>
+                  <p className="preset-desc">
+                    {weather.mumbai ? 'Severe undersea packet loss (+120ms). Testing Anycast detour to Delhi.' : 'Inject +120ms latency storm to simulate Arabian Sea fiber break.'}
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: Mumbai Edge</span>
+                    <span className="preset-tag">+120ms Ping</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`chaos-preset-card ${overload.mumbai ? 'active' : ''}`}
+                  onClick={() => toggleOverload('mumbai')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge overload">
+                      <Zap size={16} />
+                    </span>
+                    <span className={`preset-toggle-status ${overload.mumbai ? 'active' : ''}`}>
+                      {overload.mumbai ? 'ACTIVE' : 'IDLE'}
+                    </span>
+                  </div>
+                  <h4 className="preset-name">Mumbai POP Saturation</h4>
+                  <p className="preset-desc">
+                    {overload.mumbai ? 'Queue saturated at 95% CPU. Anycast sheds load to secondary edge.' : 'Saturate edge node request queue to 95% CPU capacity.'}
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: Mumbai Edge</span>
+                    <span className="preset-tag">Load Shedding</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`chaos-preset-card ${weather.frankfurt ? 'active' : ''}`}
+                  onClick={() => toggleWeather('frankfurt')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge storm">
+                      <CloudRain size={16} />
+                    </span>
+                    <span className={`preset-toggle-status ${weather.frankfurt ? 'active' : ''}`}>
+                      {weather.frankfurt ? 'ACTIVE' : 'IDLE'}
+                    </span>
+                  </div>
+                  <h4 className="preset-name">Frankfurt Transit Blackout</h4>
+                  <p className="preset-desc">
+                    {weather.frankfurt ? 'European transit congested (+120ms). Diverting to London POP.' : 'Simulate central European transit hub degradation.'}
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: Frankfurt Edge</span>
+                    <span className="preset-tag">EU Congestion</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`chaos-preset-card ${weather.singapore ? 'active' : ''}`}
+                  onClick={() => toggleWeather('singapore')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge storm">
+                      <CloudRain size={16} />
+                    </span>
+                    <span className={`preset-toggle-status ${weather.singapore ? 'active' : ''}`}>
+                      {weather.singapore ? 'ACTIVE' : 'IDLE'}
+                    </span>
+                  </div>
+                  <h4 className="preset-name">Singapore Subsea Sever</h4>
+                  <p className="preset-desc">
+                    {weather.singapore ? 'APAC hub packet loss (+120ms). Testing Tokyo/Bengaluru reroute.' : 'Inject latency spike simulating Straits of Malacca fiber break.'}
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: Singapore Edge</span>
+                    <span className="preset-tag">APAC Gateway</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className="chaos-preset-card purge-card"
+                  onClick={() => purgeCache('all')}
+                >
+                  <div className="preset-card-top">
+                    <span className="preset-icon-badge stampede">
+                      <Trash2 size={16} />
+                    </span>
+                    <span className="preset-toggle-status stampede">TRIGGER</span>
+                  </div>
+                  <h4 className="preset-name">Global Cache Stampede</h4>
+                  <p className="preset-desc">
+                    Instant edge eviction across all 16 POPs to simulate simultaneous TTL expiry & thundering herd to Origin.
+                  </p>
+                  <div className="preset-footer">
+                    <span>Target: All 16 POPs</span>
+                    <span className="preset-tag">Cache Eviction</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Targeted POP Custom Fault Injector & Real-Time Probe Console */}
+            <div className="chaos-grid-two-col">
+              {/* Targeted POP Custom Injector */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Sliders size={18} className="text-emerald-400" />
+                    <h3 className="chaos-card-title">Targeted POP Custom Fault Injector</h3>
+                  </div>
+                  <span className="chaos-header-badge">SURGICAL FAULT INJECTION</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Select any specific edge POP from the 16 global nodes to inject localized storms, hardware bottlenecks, or node cache purges:
                 </p>
 
-                <div className="chaos-preset-grid">
-                  <button
-                    type="button"
-                    className={`chaos-preset-btn ${originOverloaded ? 'active' : ''}`}
-                    onClick={() => toggleOverload('origin')}
+                <div className="custom-pop-selector-box">
+                  <label htmlFor="chaos-pop-select" className="custom-pop-label">Target Edge Node:</label>
+                  <select
+                    id="chaos-pop-select"
+                    value={customChaosPop}
+                    onChange={(e) => setCustomChaosPop(e.target.value)}
+                    className="custom-pop-select"
                   >
-                    <span className="preset-title flex items-center gap-2">
-                      <Flame size={15} className="text-rose-400" />
-                      <span>Origin Server CPU Melt</span>
-                    </span>
-                    <span className="preset-desc">{originOverloaded ? 'Origin locked at 100% CPU' : 'Spike origin to 100% CPU'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`chaos-preset-btn ${weather.mumbai ? 'active' : ''}`}
-                    onClick={() => toggleWeather('mumbai')}
-                  >
-                    <span className="preset-title flex items-center gap-2">
-                      <CloudRain size={15} className="text-cyan-400" />
-                      <span>Mumbai Fiber Cyclone</span>
-                    </span>
-                    <span className="preset-desc">{weather.mumbai ? 'Severe Storm (+120ms latency)' : 'Inject latency spike (+120ms)'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`chaos-preset-btn ${overload.mumbai ? 'active' : ''}`}
-                    onClick={() => toggleOverload('mumbai')}
-                  >
-                    <span className="preset-title flex items-center gap-2">
-                      <Zap size={15} className="text-amber-400" />
-                      <span>Mumbai POP Overload</span>
-                    </span>
-                    <span className="preset-desc">{overload.mumbai ? 'Force re-route to Frankfurt' : 'Saturate queue to 95% CPU'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="chaos-preset-btn"
-                    onClick={() => purgeCache('all')}
-                  >
-                    <span className="preset-title flex items-center gap-2">
-                      <Trash2 size={15} className="text-purple-400" />
-                      <span>Global Cache Stampede</span>
-                    </span>
-                    <span className="preset-desc">Flush all edge POP cache memory</span>
-                  </button>
+                    {Object.keys(servers).filter(k => k !== 'origin').map(k => (
+                      <option key={k} value={k}>
+                        {servers[k].name} ({servers[k].lat.toFixed(1)}°, {servers[k].lon.toFixed(1)}°)
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
 
-              {/* Custom Payload Publishing Studio */}
-              <div className="theory-concept-card">
-                <h3 className="theory-section-title">
-                  <Database size={18} className="text-cyan-400" />
-                  <span>Payload Replication & Cache Invalidation Studio</span>
-                </h3>
-                <p className="theory-body-p">
-                  Publish a new document payload to Central Origin. Then run requests from different regional clients to observe cache miss propagation followed by persistent edge replication:
-                </p>
-
-                <form onSubmit={handlePublish} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Enter document payload (e.g. 'v2.4-firmware-binary-blob')"
-                    className="chaos-input-field"
-                  />
-                  <button type="submit" className="chaos-apply-btn">
-                    <Sparkles size={14} />
-                    <span>Publish to Origin</span>
-                  </button>
-                </form>
-
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-400 bg-black/40 p-3 rounded-lg border border-white/5">
-                  <span>Active Content ID: <strong className="text-emerald-400">{activeContentId}</strong></span>
-                  <span>Origin Master Copy: <strong className="text-cyan-400">{globalCache.origin[activeContentId] || 'None'}</strong></span>
-                </div>
-              </div>
-
-              {/* Chaos Telemetry Terminal Log */}
-              <div className="theory-concept-card">
-                <h3 className="theory-section-title">
-                  <Terminal size={18} className="text-emerald-400" />
-                  <span>Chaos Telemetry Real-Time Log</span>
-                </h3>
-                <div className="chaos-terminal">
-                  {logs.map((log, i) => (
-                    <div key={i} className={`terminal-line ${i === 0 ? 'active' : ''}`}>
-                      {log}
+                {customChaosPop && servers[customChaosPop] && (
+                  <div className="custom-pop-status-banner">
+                    <div className="pop-status-col">
+                      <span className="pop-stat-label">Base Ping</span>
+                      <span className="pop-stat-val text-cyan-400">{servers[customChaosPop].baseLatency}ms</span>
                     </div>
-                  ))}
+                    <div className="pop-status-col">
+                      <span className="pop-stat-label">Current Load</span>
+                      <span className={`pop-stat-val ${overload[customChaosPop] ? 'text-rose-400 font-bold' : 'text-slate-200'}`}>
+                        {overload[customChaosPop] ? '95% (SATURATED)' : `${servers[customChaosPop].baseLoad}%`}
+                      </span>
+                    </div>
+                    <div className="pop-status-col">
+                      <span className="pop-stat-label">Atmosphere</span>
+                      <span className={`pop-stat-val ${weather[customChaosPop] ? 'text-amber-400 font-bold' : 'text-emerald-400'}`}>
+                        {weather[customChaosPop] ? '+120ms STORM' : 'Clear Link'}
+                      </span>
+                    </div>
+                    <div className="pop-status-col">
+                      <span className="pop-stat-label">Cache Memory</span>
+                      <span className="pop-stat-val text-cyan-400">
+                        {Object.keys(globalCache[customChaosPop] || {}).length} Objects
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="custom-pop-buttons-row">
+                  <button
+                    type="button"
+                    className={`custom-action-btn ${weather[customChaosPop] ? 'active-storm' : ''}`}
+                    onClick={() => toggleWeather(customChaosPop)}
+                  >
+                    <CloudRain size={14} />
+                    <span>{weather[customChaosPop] ? 'Clear Link Storm' : 'Inject Storm (+120ms)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`custom-action-btn ${overload[customChaosPop] ? 'active-overload' : ''}`}
+                    onClick={() => toggleOverload(customChaosPop)}
+                  >
+                    <Zap size={14} />
+                    <span>{overload[customChaosPop] ? 'Clear CPU Overload' : 'Spike CPU to 95%'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="custom-action-btn purge"
+                    onClick={() => purgeCache(customChaosPop)}
+                  >
+                    <Trash2 size={14} />
+                    <span>Purge POP Cache</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Chaos Probe Runner */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Activity size={18} className="text-cyan-400" />
+                    <h3 className="chaos-card-title">Live Chaos Probe Runner</h3>
+                  </div>
+                  <span className="chaos-header-badge">REAL-TIME BEHAVIOR TEST</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Execute an end-to-end packet probe from any regional client to observe how the Anycast mesh reacts to your active fault injections:
+                </p>
+
+                <div className="custom-pop-selector-box">
+                  <label htmlFor="chaos-client-select" className="custom-pop-label">Regional Client Origin:</label>
+                  <select
+                    id="chaos-client-select"
+                    value={selectedClient}
+                    onChange={(e) => setSelectedClient(e.target.value)}
+                    className="custom-pop-select"
+                  >
+                    {Object.keys(clients).map(k => (
+                      <option key={k} value={k}>
+                        {clients[k].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="probe-action-box">
+                  <button
+                    type="button"
+                    className="chaos-fire-probe-btn"
+                    onClick={handleRunRequest}
+                    disabled={isSimulating}
+                  >
+                    {isSimulating ? (
+                      <>
+                        <RefreshCw size={15} className="animate-spin" />
+                        <span>Propagating Packet ({Math.round(simProgress * 100)}%)...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play size={15} />
+                        <span>Fire Chaos Probe Request</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Probe Result Card */}
+                {simResults && (
+                  <div className="chaos-probe-result-card">
+                    <div className="probe-result-header">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                        <span className="probe-result-title">Probe Diagnostics Delivered</span>
+                      </div>
+                      <span className={`probe-cache-badge ${simResults.cacheHit ? 'hit' : 'miss'}`}>
+                        {simResults.cacheHit ? 'CACHE HIT' : 'CACHE MISS'}
+                      </span>
+                    </div>
+
+                    <div className="probe-metrics-grid">
+                      <div className="probe-metric-item">
+                        <span className="p-label">Selected POP:</span>
+                        <span className="p-val font-semibold text-emerald-400">{simResults.selectedServerName}</span>
+                      </div>
+                      <div className="probe-metric-item">
+                        <span className="p-label">Total Latency:</span>
+                        <span className="p-val font-semibold text-cyan-400">{simResults.latency}ms</span>
+                      </div>
+                      <div className="probe-metric-item">
+                        <span className="p-label">DNS Time:</span>
+                        <span className="p-val text-slate-300">{simResults.dnsLatency}ms</span>
+                      </div>
+                      <div className="probe-metric-item">
+                        <span className="p-label">Edge Fetch:</span>
+                        <span className="p-val text-slate-300">{simResults.edgeLatency}ms</span>
+                      </div>
+                    </div>
+
+                    <div className="probe-content-row">
+                      <span className="text-xs text-slate-400">Payload Received:</span>
+                      <code className="probe-code-snippet">{simResults.contentReceived}</code>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 4. Payload Replication & Invalidation Studio */}
+            <div className="chaos-card-full">
+              <div className="chaos-card-header">
+                <div className="flex items-center gap-2">
+                  <Database size={18} className="text-cyan-400" />
+                  <h3 className="chaos-card-title">Payload Replication & Cache Invalidation Studio</h3>
+                </div>
+                <span className="chaos-header-badge">CONTENT PROPAGATION</span>
+              </div>
+              <p className="chaos-card-desc">
+                Publish a new version payload to Central Origin (San Francisco), then fire probes to watch edge cache miss propagation turn into persistent edge replicas:
+              </p>
+
+              <form onSubmit={handlePublish} className="chaos-publish-form">
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Enter document payload (e.g. 'v3.2-binary-firmware-patch')"
+                  className="chaos-publish-input"
+                />
+                <button type="submit" className="chaos-publish-btn">
+                  <Sparkles size={14} />
+                  <span>Publish to Origin</span>
+                </button>
+              </form>
+
+              <div className="chaos-payload-status-row">
+                <div className="payload-status-item">
+                  <span className="item-label">Active Content ID:</span>
+                  <strong className="item-val text-emerald-400">{activeContentId}</strong>
+                </div>
+                <div className="payload-status-item">
+                  <span className="item-label">Origin Master Copy:</span>
+                  <strong className="item-val text-cyan-400">{globalCache.origin[activeContentId] || 'None'}</strong>
+                </div>
+                <div className="payload-status-item">
+                  <span className="item-label">Edge POPs Cached:</span>
+                  <strong className="item-val text-amber-400">
+                    {Object.keys(servers).filter(k => k !== 'origin' && globalCache[k]?.[activeContentId]).length} / 15 POPs
+                  </strong>
                 </div>
               </div>
             </div>
 
-            {/* Sidebar Chaos Diagnostics */}
-            <div className="theory-sidebar-column">
-              <div className="theory-complexity-card">
-                <h3 className="theory-sidebar-heading">Active Fault States</h3>
-                <div className="complexity-table">
-                  <div className="complexity-row">
-                    <span className="tbl-label">Origin Overload:</span>
-                    <span className={`tbl-val ${originOverloaded ? 'orange' : 'green'}`}>
-                      {originOverloaded ? 'ACTIVE (100% CPU)' : 'NOMINAL (Normal)'}
-                    </span>
-                  </div>
-                  <div className="complexity-row">
-                    <span className="tbl-label">Mumbai Storm:</span>
-                    <span className={`tbl-val ${weather.mumbai ? 'orange' : 'green'}`}>
-                      {weather.mumbai ? '+120ms Latency' : 'Clear Link'}
-                    </span>
-                  </div>
-                  <div className="complexity-row">
-                    <span className="tbl-label">Mumbai Overload:</span>
-                    <span className={`tbl-val ${overload.mumbai ? 'orange' : 'green'}`}>
-                      {overload.mumbai ? '95% CPU Saturated' : 'Balanced Queue'}
-                    </span>
-                  </div>
-                  <div className="complexity-row">
-                    <span className="tbl-label">Anycast Failover:</span>
-                    <span className="tbl-val cyan">Automatic Re-route</span>
-                  </div>
+            {/* 5. Chaos Telemetry Real-Time Log */}
+            <div className="chaos-card-full">
+              <div className="chaos-card-header">
+                <div className="flex items-center gap-2">
+                  <Terminal size={18} className="text-emerald-400" />
+                  <h3 className="chaos-card-title">Chaos Telemetry Real-Time Stream</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="telemetry-live-dot" />
+                  <span className="text-xs text-slate-400 font-mono">STREAM ACTIVE</span>
+                  <button
+                    type="button"
+                    className="chaos-clear-logs-btn"
+                    onClick={clearLogs}
+                    title="Clear telemetry logs"
+                  >
+                    Clear Stream
+                  </button>
                 </div>
               </div>
 
-              <div className="theory-complexity-card">
-                <h3 className="theory-sidebar-heading">Chaos Best Practices</h3>
-                <ul className="theory-bullet-list">
-                  <li><strong>Origin Shielding:</strong> Absorbs cache miss spikes to prevent thundering herd failures.</li>
-                  <li><strong>Anycast Load Shedding:</strong> Redirects traffic to next nearest POP when CPU exceeds 85%.</li>
-                  <li><strong>TTL Jitter:</strong> Applies randomized +/- 5% TTL to prevent synchronous mass expiration.</li>
-                </ul>
+              <div className="chaos-terminal-full">
+                {logs.map((log, i) => (
+                  <div key={i} className={`terminal-line-v2 ${i === 0 ? 'active' : ''}`}>
+                    {log}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
