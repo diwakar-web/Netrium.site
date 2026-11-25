@@ -410,6 +410,10 @@ export default function MyLabsPage() {
                           navigate('/cdn');
                         } else if (facility.id === 'dsa-algo' || facility.id === 'dsa') {
                           navigate('/dsa');
+                        } else if (facility.id === 'virt-memory' || facility.id === 'paging') {
+                          navigate('/page-replacement');
+                        } else if (facility.id === 'os-kernel' || facility.id === 'routing') {
+                          navigate('/routing');
                         } else {
                           setActiveFacility(facility.id);
                         }

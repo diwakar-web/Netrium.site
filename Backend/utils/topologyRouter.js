@@ -207,6 +207,51 @@ export function calculateTopologyPath({
       break;
     }
 
+    case 'cdn': {
+      const edgeNode = nodes.find(n => n.role === 'edge') || nodes[1] || nodes[0];
+      const originNode = nodes.find(n => n.role === 'origin') || nodes[0];
+      if (sourceNodeId === originNode.id || targetNodeId === originNode.id) {
+        path = [sourceNodeId, edgeNode.id, targetNodeId];
+      } else {
+        path = [sourceNodeId, edgeNode.id, originNode.id, edgeNode.id, targetNodeId];
+      }
+      break;
+    }
+
+    case 'routing': {
+      // Find shortest route along active router nodes
+      const nList = [...nodes];
+      const sIdx = nList.findIndex(n => n.id === sourceNodeId);
+      const tIdx = nList.findIndex(n => n.id === targetNodeId);
+      if (sIdx !== -1 && tIdx !== -1) {
+        const step = sIdx <= tIdx ? 1 : -1;
+        path = [];
+        for (let i = sIdx; i !== tIdx + step; i += step) {
+          if (nList[i] && nList[i].status === 'online') {
+            path.push(nList[i].id);
+          }
+        }
+        if (path.length === 0 || path[path.length - 1] !== targetNodeId) {
+          path = [sourceNodeId, targetNodeId];
+        }
+      } else {
+        path = [sourceNodeId, targetNodeId];
+      }
+      break;
+    }
+
+    case 'page-replacement': {
+      const mmu = nodes.find(n => n.role === 'cache') || nodes[1];
+      const ram = nodes.find(n => n.role === 'memory') || nodes[2];
+      const swp = nodes.find(n => n.role === 'storage') || nodes[3];
+      if (payloadText && payloadText.toLowerCase().includes('fault')) {
+        path = [sourceNodeId, mmu?.id || sourceNodeId, ram?.id || targetNodeId, swp?.id || targetNodeId, ram?.id || targetNodeId];
+      } else {
+        path = [sourceNodeId, mmu?.id || sourceNodeId, ram?.id || targetNodeId];
+      }
+      break;
+    }
+
     case 'hybrid':
     default: {
       const bridge = nodes.find(n => n.role === 'hub') || nodes[0];

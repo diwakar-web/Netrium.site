@@ -1934,17 +1934,17 @@
     width: 100%;
   }
 
-  /* Stage sits on TOP on mobile */
-  .sim-canvas-panel {
+  /* Controls sit on TOP on mobile, Stage sits below */
+  .sim-controls-panel {
     order: 1;
-    padding: 14px 12px;
-    border-radius: 16px;
     width: 100%;
     box-sizing: border-box;
   }
 
-  .sim-controls-panel {
+  .sim-canvas-panel {
     order: 2;
+    padding: 14px 12px;
+    border-radius: 16px;
     width: 100%;
     box-sizing: border-box;
   }

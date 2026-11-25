@@ -83,7 +83,6 @@ const topologyRoomSchema = new mongoose.Schema({
   topologyType: {
     type: String,
     required: true,
-    enum: ['star', 'bus', 'ring', 'mesh', 'tree', 'hybrid'],
     default: 'ring'
   },
   hostEmail: {

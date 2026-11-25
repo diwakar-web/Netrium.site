@@ -44,18 +44,38 @@ router.post('/create', async (req, res) => {
 
     // Generate node objects for the room
     const nodes = [];
-    for (let i = 0; i < numNodes; i++) {
-      const label = NODE_LABELS[i];
-      const isHub = (topologyType === 'star' || topologyType === 'hybrid') && i === 0;
-      const isRoot = topologyType === 'tree' && i === 0;
+    if (topologyType === 'cdn') {
+      nodes.push({ id: 'node-origin', label: 'O', name: 'Primary Origin Server', status: 'online', role: 'origin' });
+      nodes.push({ id: 'node-edge', label: 'E', name: 'CDN Edge POP', status: 'online', role: 'edge' });
+      nodes.push({ id: 'node-client', label: 'C', name: 'Client Consumer', status: 'online', role: 'client' });
+      if (numNodes >= 4) {
+        nodes.push({ id: 'node-backup', label: 'B', name: 'Secondary Regional POP', status: 'online', role: 'edge' });
+      }
+    } else if (topologyType === 'routing') {
+      const rCount = Math.min(Math.max(numNodes, 4), 6);
+      for (let i = 0; i < rCount; i++) {
+        const id = `node-r${i + 1}`;
+        nodes.push({ id, label: `R${i + 1}`, name: `Router R${i + 1}`, status: 'online', role: 'router' });
+      }
+    } else if (topologyType === 'page-replacement') {
+      nodes.push({ id: 'node-cpu', label: 'CPU', name: 'CPU Core Process', status: 'online', role: 'requester' });
+      nodes.push({ id: 'node-mmu', label: 'MMU', name: 'MMU / TLB Cache', status: 'online', role: 'cache' });
+      nodes.push({ id: 'node-ram', label: 'RAM', name: 'Physical RAM Frames', status: 'online', role: 'memory' });
+      nodes.push({ id: 'node-swap', label: 'SWP', name: 'NVMe Swap Disk', status: 'online', role: 'storage' });
+    } else {
+      for (let i = 0; i < numNodes; i++) {
+        const label = NODE_LABELS[i];
+        const isHub = (topologyType === 'star' || topologyType === 'hybrid') && i === 0;
+        const isRoot = topologyType === 'tree' && i === 0;
 
-      nodes.push({
-        id: `node-${label.toLowerCase()}`,
-        label,
-        name: `Station ${label}`,
-        status: 'online',
-        role: isHub ? 'hub' : isRoot ? 'root' : 'node'
-      });
+        nodes.push({
+          id: `node-${label.toLowerCase()}`,
+          label,
+          name: `Station ${label}`,
+          status: 'online',
+          role: isHub ? 'hub' : isRoot ? 'root' : 'node'
+        });
+      }
     }
 
     // Host is assigned to Node A by default

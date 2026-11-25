@@ -1,0 +1,46 @@
+/* ==========================================================================
+   PAGE REPLACEMENT & ROUTING ALGORITHMS OPTIONS HUB - PURE BLACK THEME
+   ========================================================================== */
+
+@import './TopologiesPage.css';
+@import './DsaPage.css';
+
+.pr-hub-viewport {
+  background-color: #000000;
+}
+
+.hub-filter-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.hub-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  padding: 8px 18px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.hub-filter-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.hub-filter-pill.active {
+  background: rgba(0, 191, 99, 0.15);
+  border-color: rgba(0, 191, 99, 0.45);
+  color: #00bf63;
+  box-shadow: 0 0 16px rgba(0, 191, 99, 0.2);
+}

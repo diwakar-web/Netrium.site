@@ -95,6 +95,8 @@ export default function Navbar({ onOpenFacility }) {
                 if (facilityId === 'multi-mesh' || facilityId === 'topologies') targetPath = '/topologies';
                 else if (facilityId === 'packet-trace' || facilityId === 'cdn') targetPath = '/cdn';
                 else if (facilityId === 'dsa-algo' || facilityId === 'dsa') targetPath = '/dsa';
+                else if (facilityId === 'virt-memory' || facilityId === 'paging') targetPath = '/page-replacement';
+                else if (facilityId === 'os-kernel' || facilityId === 'routing') targetPath = '/routing';
 
                 if (!isAuthenticated) {
                   navigate('/login', {
@@ -112,6 +114,10 @@ export default function Navbar({ onOpenFacility }) {
                   navigate('/cdn');
                 } else if (facilityId === 'dsa-algo' || facilityId === 'dsa') {
                   navigate('/dsa');
+                } else if (facilityId === 'virt-memory' || facilityId === 'paging') {
+                  navigate('/page-replacement');
+                } else if (facilityId === 'os-kernel' || facilityId === 'routing') {
+                  navigate('/routing');
                 } else if (onOpenFacility) {
                   onOpenFacility(facilityId);
                 }

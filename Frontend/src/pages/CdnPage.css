@@ -2,6 +2,8 @@
    NETRIUM CDN SIMULATION & ARCHITECTURE SHOWCASE STYLES
    ========================================================================== */
 
+@import '../components/MultiplayerTopologyLab.css';
+
 .cdn-viewport {
   min-height: 100vh;
   width: 100%;
@@ -625,7 +627,49 @@
   color: #ffffff;
 }
 
-/* Routing Decision Rules Dropdown */
+/* ==========================================================================
+   STANDARDIZED PRACTICAL ORIENTATION VIEWPORT LAYOUT
+   Desktop: Controls on Left (380px), Charts & Stage on Right
+   Mobile: Controls on Top (order: 1), Charts on Bottom (order: 2)
+   ========================================================================== */
+.topolab-practical-orientation-view {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  width: 100%;
+  align-items: start;
+}
+
+.practical-controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.practical-stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .topolab-practical-orientation-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .practical-controls-col {
+    order: 1;
+    width: 100%;
+  }
+  .practical-stage-col {
+    order: 2;
+    width: 100%;
+  }
+}
+
 .cdn-rules-dropdown-widget {
   position: relative;
   display: flex;

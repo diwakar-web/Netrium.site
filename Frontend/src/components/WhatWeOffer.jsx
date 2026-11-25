@@ -346,6 +346,10 @@ export default function WhatWeOffer({ onOpenFacility }) {
                         targetPath = '/cdn';
                       } else if (section.category === 'DATA STRUCTURES & ALGORITHMS' || section.facilityId === 'dsa-algo' || section.facilityId === 'dsa') {
                         targetPath = '/dsa';
+                      } else if (section.category === 'PAGE REPLACEMENT ALGO' || section.facilityId === 'virt-memory' || section.facilityId === 'paging') {
+                        targetPath = '/page-replacement';
+                      } else if (section.category === 'ROUTING ALGO' || section.facilityId === 'os-kernel' || section.facilityId === 'routing') {
+                        targetPath = '/routing';
                       }
 
                       if (!isAuthenticated) {

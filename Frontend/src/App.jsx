@@ -23,6 +23,10 @@ import TopologyLabPage from './pages/TopologyLabPage'
 import CdnPage from './pages/CdnPage'
 import DsaPage from './pages/DsaPage'
 import DsaLabPage from './pages/DsaLabPage'
+import PageReplacementPage from './pages/PageReplacementPage'
+import PageReplacementLabPage from './pages/PageReplacementLabPage'
+import RoutingPage from './pages/RoutingPage'
+import RoutingLabPage from './pages/RoutingLabPage'
 import ScrollToTop from './components/ScrollToTop'
 import TextSelectionSlider from './components/TextSelectionSlider'
 import NetAiDrawer from './components/NetAiDrawer'
@@ -51,6 +55,8 @@ function LandingHome() {
     let targetPath = '/topologies'
     if (facilityId === 'packet-trace' || facilityId === 'cdn') targetPath = '/cdn'
     else if (facilityId === 'dsa-algo' || facilityId === 'dsa') targetPath = '/dsa'
+    else if (facilityId === 'virt-memory' || facilityId === 'paging' || facilityId === 'page-replacement') targetPath = '/page-replacement'
+    else if (facilityId === 'os-kernel' || facilityId === 'routing' || facilityId === 'routing-algo') targetPath = '/routing'
 
     if (!isAuthenticated) {
       navigate('/login', {
@@ -72,6 +78,14 @@ function LandingHome() {
     }
     if (facilityId === 'dsa-algo' || facilityId === 'dsa') {
       navigate('/dsa')
+      return
+    }
+    if (facilityId === 'virt-memory' || facilityId === 'paging' || facilityId === 'page-replacement') {
+      navigate('/page-replacement')
+      return
+    }
+    if (facilityId === 'os-kernel' || facilityId === 'routing' || facilityId === 'routing-algo') {
+      navigate('/routing')
       return
     }
     setActiveFacility(facilityId)
@@ -217,6 +231,15 @@ export default function App() {
         <Route path="/dsa" element={<ProtectedRoute><DsaPage /></ProtectedRoute>} />
         <Route path="/dsa/:dsaId" element={<ProtectedRoute><DsaLabPage /></ProtectedRoute>} />
         <Route path="/dsa/*" element={<ProtectedRoute><DsaPage /></ProtectedRoute>} />
+        <Route path="/page-replacement" element={<ProtectedRoute><PageReplacementPage /></ProtectedRoute>} />
+        <Route path="/page-replacement/:algoId" element={<ProtectedRoute><PageReplacementLabPage /></ProtectedRoute>} />
+        <Route path="/paging" element={<ProtectedRoute><Navigate to="/page-replacement" replace /></ProtectedRoute>} />
+        <Route path="/paging/*" element={<ProtectedRoute><Navigate to="/page-replacement" replace /></ProtectedRoute>} />
+        <Route path="/routing" element={<ProtectedRoute><RoutingPage /></ProtectedRoute>} />
+        <Route path="/routing/:algoId" element={<ProtectedRoute><RoutingLabPage /></ProtectedRoute>} />
+        <Route path="/routing-algo" element={<ProtectedRoute><Navigate to="/routing" replace /></ProtectedRoute>} />
+        <Route path="/routing-algo/*" element={<ProtectedRoute><Navigate to="/routing" replace /></ProtectedRoute>} />
+        <Route path="/routing-algorithms" element={<ProtectedRoute><Navigate to="/routing" replace /></ProtectedRoute>} />
         <Route path="*" element={<LandingHome />} />
       </Routes>
     </>

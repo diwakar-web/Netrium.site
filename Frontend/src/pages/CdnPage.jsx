@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, 
+  ArrowLeft,
+  ArrowRight, 
   Server, 
   Globe, 
   Navigation, 
@@ -37,13 +38,31 @@ import {
   CheckCircle2,
   AlertCircle,
   Wifi,
-  RefreshCw
+  RefreshCw,
+  Laptop,
+  Smartphone,
+  Compass,
+  Crosshair,
+  Users,
+  Share2,
+  Send
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import HoloCard from '../components/HoloCard';
 import CdnMap from '../components/CdnMap';
 import { CDN_CARDS } from '../utils/cdnCardArts';
 import { servers, clients, simulateRequest, getHaversineDistance } from '../utils/cdnEngine';
+import { useAuth } from '../context/AuthContext';
+import '../components/MultiplayerTopologyLab.css';
+import {
+  createRoomApi,
+  joinRoomApi,
+  pollRoomApi,
+  pingRoomApi,
+  subscribeToRoomBroadcast,
+  transmitRoomApi,
+  stepRoomApi
+} from '../utils/multiplayerRoomManager';
 import './CdnPage.css';
 
 const ICON_MAP = {
@@ -143,6 +162,292 @@ export default function CdnPage() {
     'SYS: Global POP Anycast DNS table verified across 16 edge regions.',
     'READY: Ready for edge packet simulation traversal.'
   ]);
+
+  // ==========================================
+  // MULTI-DEVICE & GEOLOCATION CDN ENGINE
+  // ==========================================
+  const { user, isAuthenticated } = useAuth();
+  const roomHostName = user?.name || 'Local Machine (Room Host)';
+  
+  // Collaborative 4-Digit Room State
+  const [cdnRoom, setCdnRoom] = useState(null);
+  const [cdnRoomCode, setCdnRoomCode] = useState('');
+  const [isCdnHost, setIsCdnHost] = useState(false);
+  const [cdnLobbyTab, setCdnLobbyTab] = useState('create'); // 'create' | 'join'
+  const [cdnReqNodes, setCdnReqNodes] = useState(4);
+  const [cdnJoinCodeInput, setCdnJoinCodeInput] = useState('');
+  const [cdnIsSubmitting, setCdnIsSubmitting] = useState(false);
+  const [cdnLobbyError, setCdnLobbyError] = useState('');
+  const [cdnCopiedCode, setCdnCopiedCode] = useState(false);
+
+  // Room Creation Handlers
+  const handleCreateCdnRoom = async (e) => {
+    e?.preventDefault();
+    setCdnIsSubmitting(true);
+    setCdnLobbyError('');
+    try {
+      const result = await createRoomApi({
+        topologyType: 'cdn',
+        maxParticipants: cdnReqNodes,
+        hostEmail: user?.email || 'origin-host@netrium.site',
+        hostName: user?.name || 'Primary Origin Host',
+        nodes: [
+          { id: 'node-origin', label: 'O', name: `Origin Server (${user?.name || 'Host'})`, status: 'online', role: 'origin' },
+          { id: 'node-edge', label: 'E', name: `Edge POP (${servers[selectedEdgeKey]?.name || 'Tokyo POP'})`, status: 'online', role: 'edge' },
+          { id: 'node-client', label: 'C', name: 'Client Consumer Device', status: 'online', role: 'client' },
+          { id: 'node-backup', label: 'B', name: 'Secondary POP (Frankfurt)', status: 'online', role: 'edge' }
+        ],
+        sourceNodeId: 'node-client',
+        targetNodeId: 'node-origin',
+        payloadText: selectedAsset
+      });
+      setCdnRoom(result.room);
+      setCdnRoomCode(result.code);
+      setIsCdnHost(true);
+      setMyDeviceCdnRole('origin');
+      addCdnPracticalLog(`[ROOM CREATED] 4-digit code ${result.code}. Designated as Primary Origin Server.`, 'success');
+    } catch (err) {
+      setCdnLobbyError(err.message || 'Failed to create room.');
+    } finally {
+      setCdnIsSubmitting(false);
+    }
+  };
+
+  const handleJoinCdnRoom = async (e) => {
+    e?.preventDefault();
+    const clean = cdnJoinCodeInput.trim().toUpperCase();
+    if (clean.length !== 4) {
+      setCdnLobbyError('Please enter a valid 4-digit numeric code.');
+      return;
+    }
+    setCdnIsSubmitting(true);
+    setCdnLobbyError('');
+    try {
+      const result = await joinRoomApi({
+        code: clean,
+        email: user?.email || `client-${Date.now()}@netrium.site`,
+        name: user?.name || 'Participant Device'
+      });
+      setCdnRoom(result.room);
+      setCdnRoomCode(result.room.code);
+      const isHostCheck = (result.room.hostEmail || '').toLowerCase() === (user?.email || '').toLowerCase();
+      setIsCdnHost(isHostCheck);
+      setMyDeviceCdnRole(isHostCheck ? 'origin' : 'client');
+      addCdnPracticalLog(`[DEVICE CONNECTED] Joined CDN room ${clean} as ${isHostCheck ? 'Primary Origin Server' : 'Client Consumer'}.`, 'success');
+    } catch (err) {
+      setCdnLobbyError(err.message || 'Room not found. Please verify the code.');
+    } finally {
+      setCdnIsSubmitting(false);
+    }
+  };
+
+  const handleCopyCdnRoomCode = () => {
+    if (!cdnRoomCode) return;
+    navigator.clipboard.writeText(cdnRoomCode);
+    setCdnCopiedCode(true);
+    setTimeout(() => setCdnCopiedCode(false), 2500);
+  };
+
+  const handleLeaveCdnRoom = () => {
+    if (window.confirm('Are you sure you want to leave this CDN simulation room?')) {
+      setCdnRoom(null);
+      setCdnRoomCode('');
+      setIsCdnHost(false);
+    }
+  };
+
+  // Sync Room Updates across devices
+  useEffect(() => {
+    if (!cdnRoomCode) return;
+    const unsub = subscribeToRoomBroadcast(cdnRoomCode, (updatedRoom) => {
+      setCdnRoom(updatedRoom);
+    });
+    const pollTimer = setInterval(async () => {
+      const r = await pollRoomApi(cdnRoomCode);
+      if (r) setCdnRoom(r);
+    }, 1200);
+    const pingTimer = setInterval(() => {
+      pingRoomApi(cdnRoomCode, user?.email || 'user@netrium.site');
+    }, 3800);
+    return () => {
+      unsub();
+      clearInterval(pollTimer);
+      clearInterval(pingTimer);
+    };
+  }, [cdnRoomCode, user?.email]);
+
+  // Real-Time Physical Device Geolocation State
+  const [userGeo, setUserGeo] = useState({
+    lat: 19.0760,
+    lon: 72.8777,
+    name: 'Mumbai (MH)',
+    accuracy: 'GPS Optimal (±12m)',
+    isDetecting: false,
+    rawCity: 'Mumbai'
+  });
+  const [geoError, setGeoError] = useState('');
+
+  // Multi-Device Server & Client Assignment
+  const [selectedEdgeKey, setSelectedEdgeKey] = useState('tokyo');
+  const [selectedAsset, setSelectedAsset] = useState('video_4k.mp4');
+  const [forceCacheMiss, setForceCacheMiss] = useState(false);
+  const [myDeviceCdnRole, setMyDeviceCdnRole] = useState('client'); // 'client' | 'origin' | 'edge'
+
+  // Multi-hop Live Data Transfer Execution
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferStep, setTransferStep] = useState(0); // 0: idle, 1: client->edge, 2: edge eval, 3: edge->origin, 4: origin->edge, 5: edge->client, 6: delivered
+  const [lastTransferResult, setLastTransferResult] = useState(null);
+  const [cdnPracticalLogs, setCdnPracticalLogs] = useState([
+    { id: 1, time: new Date().toLocaleTimeString(), type: 'info', text: 'CDN Multi-Device Session initialized. Room Creator assigned as Primary Origin Server.' },
+    { id: 2, time: new Date().toLocaleTimeString(), type: 'info', text: 'Device Geolocation system online. Ready to acquire live physical coordinates.' }
+  ]);
+
+  const addCdnPracticalLog = (text, type = 'info') => {
+    setCdnPracticalLogs(prev => [
+      { id: Date.now() + Math.random(), time: new Date().toLocaleTimeString(), type, text },
+      ...prev.slice(0, 40)
+    ]);
+  };
+
+  // Live GPS Acquisition
+  const handleDetectLiveGeolocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError('Geolocation API not supported by browser.');
+      addCdnPracticalLog('Geolocation API not supported by browser. Falling back to Mumbai regional coordinate.', 'warning');
+      return;
+    }
+    setUserGeo(prev => ({ ...prev, isDetecting: true }));
+    setGeoError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setUserGeo({
+          lat: Number(latitude.toFixed(4)),
+          lon: Number(longitude.toFixed(4)),
+          name: `Live Device GPS (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°)`,
+          accuracy: `±${Math.round(accuracy)}m`,
+          isDetecting: false,
+          rawCity: 'Live Device GPS'
+        });
+        addCdnPracticalLog(`Acquired live physical device coordinates: ${latitude.toFixed(4)}°, ${longitude.toFixed(4)}° (Accuracy ±${Math.round(accuracy)}m). Updated SVG world matrix position.`, 'success');
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        setUserGeo(prev => ({ ...prev, isDetecting: false }));
+        setGeoError('GPS permission not granted; staying on regional coordinate.');
+        addCdnPracticalLog('GPS permission not granted; staying on regional coordinates.', 'warning');
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  };
+
+  // Handle Preset Geolocation selection
+  const handleSelectPresetGeo = (cityKey) => {
+    const preset = clients[cityKey];
+    if (preset) {
+      setUserGeo({
+        lat: preset.lat,
+        lon: preset.lon,
+        name: preset.name.replace('Client in ', ''),
+        accuracy: 'Regional Static Anchor',
+        isDetecting: false,
+        rawCity: preset.name
+      });
+      addCdnPracticalLog(`Manually set device location to ${preset.name} [${preset.lat}°, ${preset.lon}°]`, 'info');
+    }
+  };
+
+  // Purge Edge Cache
+  const handlePurgeSelectedEdgeCache = () => {
+    setGlobalCache(prev => ({
+      ...prev,
+      [selectedEdgeKey]: {}
+    }));
+    addCdnPracticalLog(`Purged L1 SSD cache at Edge POP "${servers[selectedEdgeKey]?.name || selectedEdgeKey}". Next request will force origin fetch.`, 'warning');
+  };
+
+  // Run Multi-Hop Data Transfer
+  const executeCdnDataTransfer = () => {
+    if (isTransferring) return;
+    setIsTransferring(true);
+    setTransferStep(1);
+
+    const edge = servers[selectedEdgeKey] || servers.tokyo;
+    const origin = servers.origin;
+    const isMiss = forceCacheMiss || !globalCache[selectedEdgeKey]?.[selectedAsset];
+    const clientToEdgeDist = getHaversineDistance(userGeo.lat, userGeo.lon, edge.lat, edge.lon);
+    const edgeToOriginDist = getHaversineDistance(edge.lat, edge.lon, origin.lat, origin.lon);
+
+    addCdnPracticalLog(`[HOP 1] Client Device (${userGeo.name}) -> Edge POP (${edge.name}): HTTP/3 GET /media/${selectedAsset}`, 'transfer');
+
+    setTimeout(() => {
+      setTransferStep(2); // Edge eval
+      addCdnPracticalLog(`[EDGE CACHE EVAL] ${edge.name} inspecting local cache: ${isMiss ? 'MISS (Object not in memory)' : 'HIT (Serving cached bytes directly)'}`, isMiss ? 'warning' : 'success');
+
+      if (isMiss) {
+        setTimeout(() => {
+          setTransferStep(3); // Edge -> Origin
+          addCdnPracticalLog(`[HOP 2 - ORIGIN FETCH] ${edge.name} -> Central Origin (${roomHostName}): Traversing ${edgeToOriginDist}km backbone to fetch master object...`, 'transfer');
+
+          setTimeout(() => {
+            setTransferStep(4); // Origin -> Edge
+            setGlobalCache(prev => ({
+              ...prev,
+              [selectedEdgeKey]: {
+                ...(prev[selectedEdgeKey] || {}),
+                [selectedAsset]: 'Asset binary stream cache warmed'
+              }
+            }));
+            addCdnPracticalLog(`[ORIGIN DISPATCH] Origin Server (${roomHostName}) streamed 4.2MB binary. Edge ${edge.name} cached object (TTL=300s).`, 'success');
+
+            setTimeout(() => {
+              setTransferStep(5); // Edge -> Client
+              addCdnPracticalLog(`[HOP 3 - FINAL DELIVERY] Edge ${edge.name} -> Client Device: Streaming data payload down to client...`, 'transfer');
+
+              setTimeout(() => {
+                setTransferStep(6);
+                setIsTransferring(false);
+                const totalLatency = Math.round((clientToEdgeDist / 120) + (edgeToOriginDist / 100) + edge.baseLatency + 24);
+                setLastTransferResult({
+                  asset: selectedAsset,
+                  cacheStatus: 'MISS -> POPULATED',
+                  totalLatency,
+                  edgeName: edge.name,
+                  originName: `Central Origin (${roomHostName})`,
+                  hops: 3,
+                  clientToEdgeDist,
+                  edgeToOriginDist
+                });
+                addCdnPracticalLog(`[DELIVERED] Complete! Asset "${selectedAsset}" delivered to Client Device in ${totalLatency}ms. Status: 200 OK (Origin Miss -> Populated).`, 'success');
+              }, 700);
+            }, 700);
+          }, 700);
+        }, 700);
+      } else {
+        setTimeout(() => {
+          setTransferStep(5); // Edge -> Client
+          addCdnPracticalLog(`[HOP 2 - IMMEDIATE HIT] Edge ${edge.name} streaming cached bytes directly to Client Device (Zero Origin Load!)...`, 'transfer');
+
+          setTimeout(() => {
+            setTransferStep(6);
+            setIsTransferring(false);
+            const totalLatency = Math.round((clientToEdgeDist / 140) + 12);
+            setLastTransferResult({
+              asset: selectedAsset,
+              cacheStatus: 'HIT (EDGE L1)',
+              totalLatency,
+              edgeName: edge.name,
+              originName: 'Shielded (0% Origin Load)',
+              hops: 1,
+              clientToEdgeDist,
+              edgeToOriginDist: 0
+            });
+            addCdnPracticalLog(`[DELIVERED] Complete! Asset "${selectedAsset}" delivered from Edge Cache in ${totalLatency}ms. Status: 200 OK (Cache HIT - 0% origin load).`, 'success');
+          }, 600);
+        }, 600);
+      }
+    }, 700);
+  };
 
   // Periodic random CPU load fluctuation
   useEffect(() => {
@@ -1179,501 +1484,894 @@ public class EdgeReverseProxy {
             TAB 3: PRACTICAL ORIENTED (CHAOS LAB)
             ======================================================== */}
         {/* ========================================================
-            TAB 3: PRACTICAL ORIENTED (CHAOS LAB) - 100% FULL WIDTH
+            TAB 3: PRACTICAL ORIENTED (CHAOS LAB)
+            CONTROLS ON LEFT (DESKTOP) / ON TOP (MOBILE)
+            CHARTS, DIAGNOSTICS & TELEMETRY STREAM ON RIGHT (DESKTOP)
             ======================================================== */}
-        {activeTab === 'chaos' && (
-          <div className="cdn-chaos-layout-full">
-            {/* 1. Live Mesh Health & Chaos Status HUD */}
-            <div className="chaos-hud-strip">
-              <div className="chaos-hud-card">
-                <div className="chaos-hud-header">
-                  <span className="chaos-hud-label">Origin Cluster (San Francisco)</span>
-                  <span className={`chaos-status-pill ${originOverloaded ? 'danger' : 'success'}`}>
-                    {originOverloaded ? '100% CPU MELT' : 'NOMINAL'}
-                  </span>
-                </div>
-                <div className="chaos-hud-metric">
-                  <span className={`metric-val ${originOverloaded ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {originOverloaded ? '100%' : '12%'}
-                  </span>
-                  <span className="metric-sub">CPU Queue Load</span>
-                </div>
-                <button
-                  type="button"
-                  className={`chaos-hud-action-btn ${originOverloaded ? 'active' : ''}`}
-                  onClick={() => toggleOverload('origin')}
-                >
-                  <Flame size={13} />
-                  <span>{originOverloaded ? 'Restore Origin CPU' : 'Trigger 100% CPU Melt'}</span>
-                </button>
+        {activeTab === 'chaos' && !cdnRoom && (
+          <div className="net-multiplayer-lobby">
+            <div className="lobby-hero-card">
+              <div className="lobby-pill-row">
+                <span className="lobby-mode-pill">
+                  <Radio size={12} className="live-spin" />
+                  <span>4-Digit Multiplayer Room Lobby</span>
+                </span>
+                <span className="lobby-topo-badge">GLOBAL ANYCAST CDN</span>
               </div>
-
-              <div className="chaos-hud-card">
-                <div className="chaos-hud-header">
-                  <span className="chaos-hud-label">Subsea Cable / Storm Links</span>
-                  <span className={`chaos-status-pill ${Object.values(weather).some(Boolean) ? 'warning' : 'success'}`}>
-                    {Object.values(weather).some(Boolean) ? 'WEATHER LOSS' : 'ALL OPTIMAL'}
-                  </span>
-                </div>
-                <div className="chaos-hud-metric">
-                  <span className={`metric-val ${Object.values(weather).some(Boolean) ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    {Object.values(weather).filter(Boolean).length}
-                  </span>
-                  <span className="metric-sub">Storm-Degraded Edge Links (+120ms)</span>
-                </div>
-                <div className="chaos-hud-subtext">
-                  {Object.entries(weather).filter(([_, v]) => v).map(([k]) => servers[k]?.name.split(' ')[0]).join(', ') || 'Zero link packet loss detected'}
-                </div>
-              </div>
-
-              <div className="chaos-hud-card">
-                <div className="chaos-hud-header">
-                  <span className="chaos-hud-label">Edge Hardware Queues</span>
-                  <span className={`chaos-status-pill ${Object.values(overload).some(Boolean) ? 'danger' : 'success'}`}>
-                    {Object.values(overload).some(Boolean) ? 'LOAD SHEDDING' : 'BALANCED'}
-                  </span>
-                </div>
-                <div className="chaos-hud-metric">
-                  <span className={`metric-val ${Object.values(overload).some(Boolean) ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {Object.values(overload).filter(Boolean).length}
-                  </span>
-                  <span className="metric-sub">Saturated POPs (95% CPU)</span>
-                </div>
-                <div className="chaos-hud-subtext">
-                  {Object.entries(overload).filter(([_, v]) => v).map(([k]) => servers[k]?.name.split(' ')[0]).join(', ') || 'Anycast distributing across all 15 POPs'}
-                </div>
-              </div>
-
-              <div className="chaos-hud-card reset-card">
-                <div className="chaos-hud-header">
-                  <span className="chaos-hud-label">Active Fault State</span>
-                  <span className={`chaos-status-pill ${activeFaultsCount > 0 ? 'danger live-pulse' : 'success'}`}>
-                    {activeFaultsCount} INJECTED
-                  </span>
-                </div>
-                <div className="chaos-hud-metric">
-                  <span className={`metric-val ${activeFaultsCount === 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                    {activeFaultsCount === 0 ? 'Grid Nominal' : `${activeFaultsCount} Active`}
-                  </span>
-                  <span className="metric-sub">Active Fault Conditions</span>
-                </div>
-                <button
-                  type="button"
-                  className="chaos-emergency-reset-btn"
-                  onClick={handleResetAllChaos}
-                  disabled={activeFaultsCount === 0}
-                >
-                  <RotateCcw size={14} />
-                  <span>Restore Grid / Clear Faults</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Chaos Engineering Fault Injection Suite */}
-            <div className="chaos-card-full">
-              <div className="chaos-card-header">
-                <div className="flex items-center gap-2">
-                  <Flame size={18} className="text-rose-400" />
-                  <h3 className="chaos-card-title">Chaos Engineering Fault Injection Suite</h3>
-                </div>
-                <span className="chaos-header-badge">PRESET STRESS SCENARIOS</span>
-              </div>
-              <p className="chaos-card-desc">
-                Inject deterministic infrastructure failures to test Netrium Anycast re-routing, failover resilience, origin shielding, and cache stampede recovery:
+              <h2 className="lobby-title">Multi-Device CDN Edge & Origin Cluster Lab</h2>
+              <p className="lobby-subtitle">
+                Connect multiple physical or emulated devices into a shared Edge CDN topology using a 4-digit numeric code. The user who creates the room serves as the Authoritative Primary Origin Server, while other devices connect as CDN Edge POPs and Client Consumers with live geolocation mapping and data streaming.
               </p>
 
-              <div className="chaos-preset-grid-v2">
+              <div className="lobby-tabs-switcher">
                 <button
                   type="button"
-                  className={`chaos-preset-card ${originOverloaded ? 'active' : ''}`}
-                  onClick={() => toggleOverload('origin')}
+                  className={`lobby-tab-btn ${cdnLobbyTab === 'create' ? 'active' : ''}`}
+                  onClick={() => { setCdnLobbyTab('create'); setCdnLobbyError(''); }}
                 >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge flame">
-                      <Flame size={16} />
-                    </span>
-                    <span className={`preset-toggle-status ${originOverloaded ? 'active' : ''}`}>
-                      {originOverloaded ? 'ACTIVE' : 'IDLE'}
-                    </span>
-                  </div>
-                  <h4 className="preset-name">Origin Server CPU Melt</h4>
-                  <p className="preset-desc">
-                    {originOverloaded ? 'Central origin locked at 100% CPU. Cache misses experience severe lag.' : 'Force central origin CPU queue to 100% capacity.'}
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: San Francisco</span>
-                    <span className="preset-tag">Origin Outage</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  className={`chaos-preset-card ${weather.mumbai ? 'active' : ''}`}
-                  onClick={() => toggleWeather('mumbai')}
-                >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge storm">
-                      <CloudRain size={16} />
-                    </span>
-                    <span className={`preset-toggle-status ${weather.mumbai ? 'active' : ''}`}>
-                      {weather.mumbai ? 'ACTIVE' : 'IDLE'}
-                    </span>
-                  </div>
-                  <h4 className="preset-name">Mumbai Undersea Cyclone</h4>
-                  <p className="preset-desc">
-                    {weather.mumbai ? 'Severe undersea packet loss (+120ms). Testing Anycast detour to Delhi.' : 'Inject +120ms latency storm to simulate Arabian Sea fiber break.'}
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: Mumbai Edge</span>
-                    <span className="preset-tag">+120ms Ping</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  className={`chaos-preset-card ${overload.mumbai ? 'active' : ''}`}
-                  onClick={() => toggleOverload('mumbai')}
-                >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge overload">
-                      <Zap size={16} />
-                    </span>
-                    <span className={`preset-toggle-status ${overload.mumbai ? 'active' : ''}`}>
-                      {overload.mumbai ? 'ACTIVE' : 'IDLE'}
-                    </span>
-                  </div>
-                  <h4 className="preset-name">Mumbai POP Saturation</h4>
-                  <p className="preset-desc">
-                    {overload.mumbai ? 'Queue saturated at 95% CPU. Anycast sheds load to secondary edge.' : 'Saturate edge node request queue to 95% CPU capacity.'}
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: Mumbai Edge</span>
-                    <span className="preset-tag">Load Shedding</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  className={`chaos-preset-card ${weather.frankfurt ? 'active' : ''}`}
-                  onClick={() => toggleWeather('frankfurt')}
-                >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge storm">
-                      <CloudRain size={16} />
-                    </span>
-                    <span className={`preset-toggle-status ${weather.frankfurt ? 'active' : ''}`}>
-                      {weather.frankfurt ? 'ACTIVE' : 'IDLE'}
-                    </span>
-                  </div>
-                  <h4 className="preset-name">Frankfurt Transit Blackout</h4>
-                  <p className="preset-desc">
-                    {weather.frankfurt ? 'European transit congested (+120ms). Diverting to London POP.' : 'Simulate central European transit hub degradation.'}
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: Frankfurt Edge</span>
-                    <span className="preset-tag">EU Congestion</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  className={`chaos-preset-card ${weather.singapore ? 'active' : ''}`}
-                  onClick={() => toggleWeather('singapore')}
-                >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge storm">
-                      <CloudRain size={16} />
-                    </span>
-                    <span className={`preset-toggle-status ${weather.singapore ? 'active' : ''}`}>
-                      {weather.singapore ? 'ACTIVE' : 'IDLE'}
-                    </span>
-                  </div>
-                  <h4 className="preset-name">Singapore Subsea Sever</h4>
-                  <p className="preset-desc">
-                    {weather.singapore ? 'APAC hub packet loss (+120ms). Testing Tokyo/Bengaluru reroute.' : 'Inject latency spike simulating Straits of Malacca fiber break.'}
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: Singapore Edge</span>
-                    <span className="preset-tag">APAC Gateway</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  className="chaos-preset-card purge-card"
-                  onClick={() => purgeCache('all')}
-                >
-                  <div className="preset-card-top">
-                    <span className="preset-icon-badge stampede">
-                      <Trash2 size={16} />
-                    </span>
-                    <span className="preset-toggle-status stampede">TRIGGER</span>
-                  </div>
-                  <h4 className="preset-name">Global Cache Stampede</h4>
-                  <p className="preset-desc">
-                    Instant edge eviction across all 16 POPs to simulate simultaneous TTL expiry & thundering herd to Origin.
-                  </p>
-                  <div className="preset-footer">
-                    <span>Target: All 16 POPs</span>
-                    <span className="preset-tag">Cache Eviction</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* 3. Targeted POP Custom Fault Injector & Real-Time Probe Console */}
-            <div className="chaos-grid-two-col">
-              {/* Targeted POP Custom Injector */}
-              <div className="chaos-card-full">
-                <div className="chaos-card-header">
-                  <div className="flex items-center gap-2">
-                    <Sliders size={18} className="text-emerald-400" />
-                    <h3 className="chaos-card-title">Targeted POP Custom Fault Injector</h3>
-                  </div>
-                  <span className="chaos-header-badge">SURGICAL FAULT INJECTION</span>
-                </div>
-                <p className="chaos-card-desc">
-                  Select any specific edge POP from the 16 global nodes to inject localized storms, hardware bottlenecks, or node cache purges:
-                </p>
-
-                <div className="custom-pop-selector-box">
-                  <label htmlFor="chaos-pop-select" className="custom-pop-label">Target Edge Node:</label>
-                  <select
-                    id="chaos-pop-select"
-                    value={customChaosPop}
-                    onChange={(e) => setCustomChaosPop(e.target.value)}
-                    className="custom-pop-select"
-                  >
-                    {Object.keys(servers).filter(k => k !== 'origin').map(k => (
-                      <option key={k} value={k}>
-                        {servers[k].name} ({servers[k].lat.toFixed(1)}°, {servers[k].lon.toFixed(1)}°)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {customChaosPop && servers[customChaosPop] && (
-                  <div className="custom-pop-status-banner">
-                    <div className="pop-status-col">
-                      <span className="pop-stat-label">Base Ping</span>
-                      <span className="pop-stat-val text-cyan-400">{servers[customChaosPop].baseLatency}ms</span>
-                    </div>
-                    <div className="pop-status-col">
-                      <span className="pop-stat-label">Current Load</span>
-                      <span className={`pop-stat-val ${overload[customChaosPop] ? 'text-rose-400 font-bold' : 'text-slate-200'}`}>
-                        {overload[customChaosPop] ? '95% (SATURATED)' : `${servers[customChaosPop].baseLoad}%`}
-                      </span>
-                    </div>
-                    <div className="pop-status-col">
-                      <span className="pop-stat-label">Atmosphere</span>
-                      <span className={`pop-stat-val ${weather[customChaosPop] ? 'text-amber-400 font-bold' : 'text-emerald-400'}`}>
-                        {weather[customChaosPop] ? '+120ms STORM' : 'Clear Link'}
-                      </span>
-                    </div>
-                    <div className="pop-status-col">
-                      <span className="pop-stat-label">Cache Memory</span>
-                      <span className="pop-stat-val text-cyan-400">
-                        {Object.keys(globalCache[customChaosPop] || {}).length} Objects
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="custom-pop-buttons-row">
-                  <button
-                    type="button"
-                    className={`custom-action-btn ${weather[customChaosPop] ? 'active-storm' : ''}`}
-                    onClick={() => toggleWeather(customChaosPop)}
-                  >
-                    <CloudRain size={14} />
-                    <span>{weather[customChaosPop] ? 'Clear Link Storm' : 'Inject Storm (+120ms)'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`custom-action-btn ${overload[customChaosPop] ? 'active-overload' : ''}`}
-                    onClick={() => toggleOverload(customChaosPop)}
-                  >
-                    <Zap size={14} />
-                    <span>{overload[customChaosPop] ? 'Clear CPU Overload' : 'Spike CPU to 95%'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="custom-action-btn purge"
-                    onClick={() => purgeCache(customChaosPop)}
-                  >
-                    <Trash2 size={14} />
-                    <span>Purge POP Cache</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Live Chaos Probe Runner */}
-              <div className="chaos-card-full">
-                <div className="chaos-card-header">
-                  <div className="flex items-center gap-2">
-                    <Activity size={18} className="text-cyan-400" />
-                    <h3 className="chaos-card-title">Live Chaos Probe Runner</h3>
-                  </div>
-                  <span className="chaos-header-badge">REAL-TIME BEHAVIOR TEST</span>
-                </div>
-                <p className="chaos-card-desc">
-                  Execute an end-to-end packet probe from any regional client to observe how the Anycast mesh reacts to your active fault injections:
-                </p>
-
-                <div className="custom-pop-selector-box">
-                  <label htmlFor="chaos-client-select" className="custom-pop-label">Regional Client Origin:</label>
-                  <select
-                    id="chaos-client-select"
-                    value={selectedClient}
-                    onChange={(e) => setSelectedClient(e.target.value)}
-                    className="custom-pop-select"
-                  >
-                    {Object.keys(clients).map(k => (
-                      <option key={k} value={k}>
-                        {clients[k].name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="probe-action-box">
-                  <button
-                    type="button"
-                    className="chaos-fire-probe-btn"
-                    onClick={handleRunRequest}
-                    disabled={isSimulating}
-                  >
-                    {isSimulating ? (
-                      <>
-                        <RefreshCw size={15} className="animate-spin" />
-                        <span>Propagating Packet ({Math.round(simProgress * 100)}%)...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={15} />
-                        <span>Fire Chaos Probe Request</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Probe Result Card */}
-                {simResults && (
-                  <div className="chaos-probe-result-card">
-                    <div className="probe-result-header">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 size={16} className="text-emerald-400" />
-                        <span className="probe-result-title">Probe Diagnostics Delivered</span>
-                      </div>
-                      <span className={`probe-cache-badge ${simResults.cacheHit ? 'hit' : 'miss'}`}>
-                        {simResults.cacheHit ? 'CACHE HIT' : 'CACHE MISS'}
-                      </span>
-                    </div>
-
-                    <div className="probe-metrics-grid">
-                      <div className="probe-metric-item">
-                        <span className="p-label">Selected POP:</span>
-                        <span className="p-val font-semibold text-emerald-400">{simResults.selectedServerName}</span>
-                      </div>
-                      <div className="probe-metric-item">
-                        <span className="p-label">Total Latency:</span>
-                        <span className="p-val font-semibold text-cyan-400">{simResults.latency}ms</span>
-                      </div>
-                      <div className="probe-metric-item">
-                        <span className="p-label">DNS Time:</span>
-                        <span className="p-val text-slate-300">{simResults.dnsLatency}ms</span>
-                      </div>
-                      <div className="probe-metric-item">
-                        <span className="p-label">Edge Fetch:</span>
-                        <span className="p-val text-slate-300">{simResults.edgeLatency}ms</span>
-                      </div>
-                    </div>
-
-                    <div className="probe-content-row">
-                      <span className="text-xs text-slate-400">Payload Received:</span>
-                      <code className="probe-code-snippet">{simResults.contentReceived}</code>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 4. Payload Replication & Invalidation Studio */}
-            <div className="chaos-card-full">
-              <div className="chaos-card-header">
-                <div className="flex items-center gap-2">
-                  <Database size={18} className="text-cyan-400" />
-                  <h3 className="chaos-card-title">Payload Replication & Cache Invalidation Studio</h3>
-                </div>
-                <span className="chaos-header-badge">CONTENT PROPAGATION</span>
-              </div>
-              <p className="chaos-card-desc">
-                Publish a new version payload to Central Origin (San Francisco), then fire probes to watch edge cache miss propagation turn into persistent edge replicas:
-              </p>
-
-              <form onSubmit={handlePublish} className="chaos-publish-form">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Enter document payload (e.g. 'v3.2-binary-firmware-patch')"
-                  className="chaos-publish-input"
-                />
-                <button type="submit" className="chaos-publish-btn">
                   <Sparkles size={14} />
-                  <span>Publish to Origin</span>
+                  <span>Create Simulation Room</span>
                 </button>
-              </form>
-
-              <div className="chaos-payload-status-row">
-                <div className="payload-status-item">
-                  <span className="item-label">Active Content ID:</span>
-                  <strong className="item-val text-emerald-400">{activeContentId}</strong>
-                </div>
-                <div className="payload-status-item">
-                  <span className="item-label">Origin Master Copy:</span>
-                  <strong className="item-val text-cyan-400">{globalCache.origin[activeContentId] || 'None'}</strong>
-                </div>
-                <div className="payload-status-item">
-                  <span className="item-label">Edge POPs Cached:</span>
-                  <strong className="item-val text-amber-400">
-                    {Object.keys(servers).filter(k => k !== 'origin' && globalCache[k]?.[activeContentId]).length} / 15 POPs
-                  </strong>
-                </div>
+                <button
+                  type="button"
+                  className={`lobby-tab-btn ${cdnLobbyTab === 'join' ? 'active' : ''}`}
+                  onClick={() => { setCdnLobbyTab('join'); setCdnLobbyError(''); }}
+                >
+                  <Radio size={14} />
+                  <span>Join with 4-Digit Code</span>
+                </button>
               </div>
-            </div>
 
-            {/* 5. Chaos Telemetry Real-Time Log */}
-            <div className="chaos-card-full">
-              <div className="chaos-card-header">
-                <div className="flex items-center gap-2">
-                  <Terminal size={18} className="text-emerald-400" />
-                  <h3 className="chaos-card-title">Chaos Telemetry Real-Time Stream</h3>
+              {cdnLobbyError && (
+                <div className="lobby-alert-error">
+                  <AlertTriangle size={15} />
+                  <span>{cdnLobbyError}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="telemetry-live-dot" />
-                  <span className="text-xs text-slate-400 font-mono">STREAM ACTIVE</span>
+              )}
+
+              {cdnLobbyTab === 'create' && (
+                <form onSubmit={handleCreateCdnRoom} className="lobby-form-pane">
+                  <div className="lobby-field-group">
+                    <label className="lobby-label">
+                      <Sliders size={14} />
+                      <span>How many devices / stations in this CDN cluster?</span>
+                    </label>
+                    <div className="node-count-selector">
+                      {[2, 3, 4, 5, 6].map(num => (
+                        <button
+                          key={num}
+                          type="button"
+                          className={`node-count-btn ${cdnReqNodes === num ? 'active' : ''}`}
+                          onClick={() => setCdnReqNodes(num)}
+                        >
+                          <span className="count-num">{num}</span>
+                          <span className="count-label">Devices</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="field-hint">
+                      Exactly {cdnReqNodes} participants will form this cluster. You will be designated as the <strong>Authoritative Primary Origin Server</strong>.
+                    </p>
+                  </div>
+
+                  <div className="lobby-summary-box">
+                    <div className="summary-row">
+                      <span>Architecture:</span>
+                      <strong>Global Anycast CDN Mesh</strong>
+                    </div>
+                    <div className="summary-row">
+                      <span>Capacity Limit:</span>
+                      <strong>{cdnReqNodes} Connected Devices</strong>
+                    </div>
+                    <div className="summary-row">
+                      <span>Primary Origin Server:</span>
+                      <strong className="text-rose-400">{user?.name || 'Local Machine'} (This Device / Room Creator)</strong>
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
-                    className="chaos-clear-logs-btn"
-                    onClick={clearLogs}
-                    title="Clear telemetry logs"
+                    type="submit"
+                    className="lobby-action-submit-btn"
+                    disabled={cdnIsSubmitting}
                   >
-                    Clear Stream
+                    <Sparkles size={16} />
+                    <span>{cdnIsSubmitting ? 'Generating 4-Digit Room...' : 'Create CDN Simulation Room'}</span>
                   </button>
+                </form>
+              )}
+
+              {cdnLobbyTab === 'join' && (
+                <form onSubmit={handleJoinCdnRoom} className="lobby-form-pane">
+                  <div className="lobby-field-group">
+                    <label className="lobby-label">
+                      <Radio size={14} />
+                      <span>Enter 4-Digit Room Code</span>
+                    </label>
+                    <div className="room-code-input-wrapper">
+                      <input
+                        type="text"
+                        maxLength={4}
+                        placeholder="e.g. 4819"
+                        value={cdnJoinCodeInput}
+                        onChange={(e) => setCdnJoinCodeInput(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="room-code-large-input"
+                        autoFocus
+                      />
+                    </div>
+                    <p className="field-hint">
+                      Ask the CDN room owner for their 4-digit code. You will automatically receive an Edge POP or Client Consumer station role upon joining.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lobby-action-submit-btn"
+                    disabled={cdnIsSubmitting || cdnJoinCodeInput.trim().length !== 4}
+                  >
+                    <Users size={16} />
+                    <span>{cdnIsSubmitting ? 'Connecting...' : 'Join CDN Lab Room'}</span>
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ACTIVE MULTI-DEVICE CDN ARENA */}
+        {activeTab === 'chaos' && cdnRoom && (
+          <div className="net-multiplayer-arena">
+
+            {/* ARENA HEADER BAR */}
+            <header className="arena-header-bar">
+              <div className="arena-header-left">
+                <div className="arena-code-card">
+                  <span className="code-label">4-DIGIT ROOM CODE</span>
+                  <div className="code-display-row">
+                    <span className="code-digits">{cdnRoom.code}</span>
+                    <button
+                      type="button"
+                      className="code-copy-btn"
+                      onClick={handleCopyCdnRoomCode}
+                      title="Copy 4-digit code to invite other devices"
+                    >
+                      {cdnCopiedCode ? <Check size={14} className="copied-icon" /> : <Copy size={14} />}
+                      <span>{cdnCopiedCode ? 'Copied!' : 'Copy Code'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="arena-topo-meta">
+                  <span className="topo-tag">GLOBAL ANYCAST CDN</span>
+                  <div className="capacity-pill">
+                    <Users size={13} />
+                    <span>
+                      {cdnRoom.participants.length} / {cdnRoom.maxParticipants} Devices Connected
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="chaos-terminal-full">
-                {logs.map((log, i) => (
-                  <div key={i} className={`terminal-line-v2 ${i === 0 ? 'active' : ''}`}>
-                    {log}
+              <div className="arena-header-actions">
+                <button
+                  type="button"
+                  className="arena-leave-btn"
+                  onClick={handleLeaveCdnRoom}
+                >
+                  <span>Exit Room</span>
+                </button>
+              </div>
+            </header>
+
+            {/* CONNECTED DEVICES ROSTER */}
+            <section className="arena-roster-section">
+              <div className="roster-header">
+                <div className="roster-title-wrap">
+                  <Radio size={14} className="live-spin" />
+                  <h3 className="roster-title">Connected Devices & Assigned CDN Roles</h3>
+                </div>
+                <span className="roster-sub">
+                  Heartbeat synchronized &bull; Room Creator is Primary Origin Server &bull; Green = Online
+                </span>
+              </div>
+
+              <div className="roster-cards-grid">
+                {cdnRoom.participants.map((p, idx) => {
+                  const isMe = (p.email || '').toLowerCase().trim() === (user?.email || '').toLowerCase().trim();
+                  const isHostUser = (p.email || '').toLowerCase().trim() === (cdnRoom.hostEmail || '').toLowerCase().trim();
+
+                  return (
+                    <div
+                      key={p.email || idx}
+                      className={`roster-participant-card ${isMe ? 'is-my-device' : ''} ${p.isOnline ? 'online' : 'offline'}`}
+                    >
+                      <div className="roster-card-header">
+                        <div className="live-status-dot-wrap">
+                          <span className={`live-status-dot ${p.isOnline ? 'green' : 'red'}`} />
+                          <span className="live-status-label">{p.isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                        </div>
+                        {isHostUser && <span className="host-badge">HOST / ORIGIN SERVER</span>}
+                        {isMe && <span className="me-badge">THIS DEVICE</span>}
+                      </div>
+
+                      <div className="roster-user-info">
+                        <span className="roster-email" title={p.email}>{p.email}</span>
+                        <span className="roster-name">{p.name || 'Station Node'}</span>
+                      </div>
+
+                      <div className="roster-station-role">
+                        <div
+                          className="assigned-node-pill"
+                          style={{
+                            borderColor: isHostUser ? '#f43f5e' : idx === 1 ? '#06b6d4' : '#10b981'
+                          }}
+                        >
+                          <span
+                            className="node-letter-badge"
+                            style={{
+                              background: isHostUser ? '#f43f5e' : idx === 1 ? '#06b6d4' : '#10b981'
+                            }}
+                          >
+                            {isHostUser ? 'O' : idx === 1 ? 'E' : 'C'}
+                          </span>
+                          <span className="node-role-name">
+                            {isHostUser
+                              ? 'Primary Origin Server'
+                              : idx === 1
+                              ? `Edge POP (${servers[selectedEdgeKey]?.name.split(' ')[0]})`
+                              : 'Client Consumer'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {Array.from({ length: Math.max(0, cdnRoom.maxParticipants - cdnRoom.participants.length) }).map((_, slotIdx) => (
+                  <div key={`empty-${slotIdx}`} className="roster-empty-slot">
+                    <span className="empty-slot-plus">+</span>
+                    <span className="empty-slot-text">Waiting for device to join...</span>
+                    <span className="empty-slot-hint">Code: {cdnRoom.code}</span>
                   </div>
                 ))}
               </div>
+            </section>
+
+            {/* TWO COLUMN VIEW: CONTROLS LEFT (DESKTOP) / TOP (MOBILE), STAGE RIGHT */}
+            <div className="topolab-practical-orientation-view cdn-practical-orientation">
+            {/* ==================================================== */}
+            {/* LEFT COLUMN: MULTI-DEVICE, GEOLOCATION & CONTROLS    */}
+            {/* ==================================================== */}
+            <div className="practical-controls-col">
+              
+              {/* 1. Multi-Device Collaborative CDN Room Hub */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Users size={18} className="text-cyan-400" />
+                    <h3 className="chaos-card-title">Multi-Device CDN Session</h3>
+                  </div>
+                  <span className="chaos-header-badge">ROOM {cdnRoomCode}</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Collaborative CDN network architecture. The user who creates the room serves as the Authoritative Primary Origin Server.
+                </p>
+
+                <div className="bg-slate-950/60 p-3 rounded-lg border border-white/5 flex flex-col gap-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-400">Primary Origin Server:</span>
+                    <strong className="text-rose-400 font-mono font-bold flex items-center gap-1">
+                      <Server size={12} /> {roomHostName} (Room Creator)
+                    </strong>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-400">Your Device Role:</span>
+                    <span className="text-emerald-400 font-bold uppercase">{myDeviceCdnRole === 'client' ? 'Client Consumer' : myDeviceCdnRole === 'edge' ? 'CDN Edge POP' : 'Origin Server'}</span>
+                  </div>
+                </div>
+
+                <div className="control-group">
+                  <label className="control-label">Emulate Device Perspective:</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      className={`hub-filter-pill text-xs justify-center py-1.5 ${myDeviceCdnRole === 'client' ? 'active' : ''}`}
+                      onClick={() => {
+                        setMyDeviceCdnRole('client');
+                        addCdnPracticalLog('Switched local device perspective to Client Consumer.', 'info');
+                      }}
+                    >
+                      <Smartphone size={13} />
+                      <span>Client</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`hub-filter-pill text-xs justify-center py-1.5 ${myDeviceCdnRole === 'edge' ? 'active' : ''}`}
+                      onClick={() => {
+                        setMyDeviceCdnRole('edge');
+                        addCdnPracticalLog(`Switched local device perspective to Edge Cache POP (${servers[selectedEdgeKey]?.name}).`, 'info');
+                      }}
+                    >
+                      <Layers size={13} />
+                      <span>Edge POP</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`hub-filter-pill text-xs justify-center py-1.5 ${myDeviceCdnRole === 'origin' ? 'active' : ''}`}
+                      onClick={() => {
+                        setMyDeviceCdnRole('origin');
+                        addCdnPracticalLog('Switched local device perspective to Primary Origin Server.', 'info');
+                      }}
+                    >
+                      <Database size={13} />
+                      <span>Origin</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Device Geolocation Positioning System */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Compass size={18} className="text-emerald-400" />
+                    <h3 className="chaos-card-title">Real-Time Geolocation</h3>
+                  </div>
+                  <span className="chaos-header-badge">GPS SENSOR</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Acquire your physical device GPS coordinates or assign regional coordinates to position your client device on the live network matrix:
+                </p>
+
+                <button
+                  type="button"
+                  className="w-full py-2.5 px-3 bg-emerald-500/15 border border-emerald-500/35 hover:bg-emerald-500/25 text-emerald-400 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition"
+                  onClick={handleDetectLiveGeolocation}
+                  disabled={userGeo.isDetecting}
+                >
+                  <Crosshair size={14} className={userGeo.isDetecting ? 'animate-spin' : ''} />
+                  <span>{userGeo.isDetecting ? 'Querying Device GPS Hardware...' : 'Detect Live Device Geolocation (GPS)'}</span>
+                </button>
+
+                {geoError && (
+                  <div className="text-xs text-amber-400 bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                    {geoError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-black/40 p-2.5 rounded border border-white/5">
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">Device Latitude</span>
+                    <span className="font-mono text-emerald-400 font-bold">{userGeo.lat}° N</span>
+                  </div>
+                  <div className="bg-black/40 p-2.5 rounded border border-white/5">
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">Device Longitude</span>
+                    <span className="font-mono text-emerald-400 font-bold">{userGeo.lon}° E</span>
+                  </div>
+                </div>
+
+                <div className="control-group">
+                  <label className="control-label">Quick Regional Geolocation Presets:</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { key: 'mumbai', label: 'Mumbai' },
+                      { key: 'delhi', label: 'Delhi' },
+                      { key: 'london', label: 'London' },
+                      { key: 'tokyo', label: 'Tokyo' },
+                      { key: 'new_york', label: 'New York' },
+                      { key: 'sydney', label: 'Sydney' },
+                      { key: 'singapore', label: 'Singapore' },
+                      { key: 'frankfurt', label: 'Berlin' }
+                    ].map(p => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        className="px-2 py-1 text-[11px] rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition"
+                        onClick={() => handleSelectPresetGeo(p.key)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Choose CDN Edge Server (POP) */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Server size={18} className="text-cyan-400" />
+                    <h3 className="chaos-card-title">Choose CDN Edge Server</h3>
+                  </div>
+                  <span className="chaos-header-badge">CACHE POP</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Select which global Edge Server POP caches and accelerates content for your client device:
+                </p>
+
+                <div className="control-group">
+                  <label htmlFor="select-edge-pop" className="control-label">Target Edge Server:</label>
+                  <select
+                    id="select-edge-pop"
+                    className="control-select"
+                    value={selectedEdgeKey}
+                    onChange={(e) => {
+                      setSelectedEdgeKey(e.target.value);
+                      addCdnPracticalLog(`Selected Edge POP updated to ${servers[e.target.value]?.name}`, 'info');
+                    }}
+                  >
+                    {Object.keys(servers).filter(k => k !== 'origin').map(k => (
+                      <option key={k} value={k}>
+                        {servers[k].name} [{servers[k].lat.toFixed(1)}°, {servers[k].lon.toFixed(1)}°] - Base Ping: {servers[k].baseLatency}ms
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-black/40 p-2.5 rounded border border-white/5">
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">Client to Edge</span>
+                    <span className="font-mono text-cyan-400 font-bold">
+                      {getHaversineDistance(userGeo.lat, userGeo.lon, servers[selectedEdgeKey]?.lat || 0, servers[selectedEdgeKey]?.lon || 0)} km
+                    </span>
+                  </div>
+                  <div className="bg-black/40 p-2.5 rounded border border-white/5">
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">Edge to Origin</span>
+                    <span className="font-mono text-amber-400 font-bold">
+                      {getHaversineDistance(servers[selectedEdgeKey]?.lat || 0, servers[selectedEdgeKey]?.lon || 0, servers.origin.lat, servers.origin.lon)} km
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/25 rounded hover:bg-rose-500/20 flex items-center gap-1.5 transition"
+                    onClick={handlePurgeSelectedEdgeCache}
+                  >
+                    <Trash2 size={13} />
+                    <span>Purge POP Memory</span>
+                  </button>
+                  <span className="text-xs text-slate-400">
+                    L1 Cache: {Object.keys(globalCache[selectedEdgeKey] || {}).length} Objects
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Real-Time Data Transfer Trigger & Payload Controls */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Send size={18} className="text-emerald-400" />
+                    <h3 className="chaos-card-title">Transmit Asset Data Stream</h3>
+                  </div>
+                  <span className="chaos-header-badge">HTTP/3</span>
+                </div>
+                <p className="chaos-card-desc">
+                  Issue asset request from your client position to evaluate cache hit/miss routing and packet hop visualization:
+                </p>
+
+                <div className="control-group">
+                  <label htmlFor="select-asset" className="control-label">Select Requested Asset Payload:</label>
+                  <select
+                    id="select-asset"
+                    className="control-select"
+                    value={selectedAsset}
+                    onChange={(e) => setSelectedAsset(e.target.value)}
+                  >
+                    <option value="video_4k.mp4">4K UltraHD Video Stream (video_4k.mp4 - 42.4 MB)</option>
+                    <option value="app_bundle.js">Production React/Wasm Bundle (app_bundle.js - 1.8 MB)</option>
+                    <option value="metrics.json">High-Frequency Telemetry API (metrics.json - 12 KB)</option>
+                    <option value="hero_banner.webp">High-Res Brand Image (hero_banner.webp - 4.1 MB)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="checkbox"
+                    id="force-miss-cb"
+                    checked={forceCacheMiss}
+                    onChange={(e) => setForceCacheMiss(e.target.checked)}
+                    className="accent-emerald-500 w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="force-miss-cb" className="text-xs text-slate-300 cursor-pointer select-none">
+                    Force Cache Miss (Bypass Edge & Route to Origin Server)
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={executeCdnDataTransfer}
+                  disabled={isTransferring}
+                >
+                  <Send size={16} />
+                  <span>{isTransferring ? 'Propagating Live Data Packets...' : 'Execute Data Transfer Stream'}</span>
+                </button>
+              </div>
+
+              {/* 5. Chaos Fault Injections Presets */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Flame size={18} className="text-rose-400" />
+                    <h3 className="chaos-card-title">Chaos Fault Injections</h3>
+                  </div>
+                  <span className="chaos-header-badge">RESILIENCE</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition ${originOverloaded ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' : 'bg-white/5 border-white/10 text-slate-300'}`}
+                    onClick={() => toggleOverload('origin')}
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span>Origin CPU Melt</span>
+                      <Flame size={13} className="text-rose-400" />
+                    </div>
+                    <span className="text-[10px] text-slate-400">Lock Origin at 100% CPU</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition ${weather[selectedEdgeKey] ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-white/5 border-white/10 text-slate-300'}`}
+                    onClick={() => toggleWeather(selectedEdgeKey)}
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span>Undersea Storm</span>
+                      <CloudRain size={13} className="text-amber-400" />
+                    </div>
+                    <span className="text-[10px] text-slate-400">+120ms Subsea Fiber Latency</span>
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* ==================================================== */}
+            {/* RIGHT COLUMN: REAL-TIME POSITION GRAPH & DATA STREAMS */}
+            {/* ==================================================== */}
+            <div className="practical-stage-col">
+
+              {/* 1. Real-Time Device Position Matrix Graph (SVG World Projection) */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Globe size={18} className="text-cyan-400" />
+                    <h3 className="chaos-card-title">Real-Time Device Position Matrix Graph</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      GPS POSITION LIVE
+                    </span>
+                  </div>
+                </div>
+                <p className="chaos-card-desc">
+                  Nodes are positioned dynamically based on real-time device GPS coordinates and selected global POP locations. Visual packet streams travel across the links as requests are executed:
+                </p>
+
+                {/* SVG WORLD COORDINATES GRAPH */}
+                <div className="w-full bg-slate-950/80 rounded-xl border border-white/10 p-3 overflow-hidden relative">
+                  <svg viewBox="0 0 720 360" className="w-full h-auto block select-none">
+                    <defs>
+                      <filter id="cdn-glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="5" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                      <linearGradient id="link-client-edge" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#10b981" />
+                        <stop offset="100%" stopColor="#06b6d4" />
+                      </linearGradient>
+                      <linearGradient id="link-edge-origin" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#06b6d4" />
+                        <stop offset="100%" stopColor="#f43f5e" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Background World Coordinate Grid Lines */}
+                    {[60, 120, 180, 240, 300].map(y => (
+                      <line key={`lat-${y}`} x1="20" y1={y} x2="700" y2={y} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 6" />
+                    ))}
+                    {[120, 240, 360, 480, 600].map(x => (
+                      <line key={`lon-${x}`} x1={x} y1="20" x2={x} y2="340" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 6" />
+                    ))}
+
+                    {/* Continents Subtle Grid Markers */}
+                    <text x="40" y="40" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">NORTH AMERICA</text>
+                    <text x="320" y="60" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">EUROPE</text>
+                    <text x="460" y="80" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">ASIA</text>
+                    <text x="120" y="240" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">SOUTH AMERICA</text>
+                    <text x="340" y="200" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">AFRICA</text>
+                    <text x="560" y="260" fill="rgba(255,255,255,0.15)" fontSize="10" fontFamily="monospace">OCEANIA</text>
+
+                    {/* Geodesic Coordinate Projections */}
+                    {(() => {
+                      const projX = (lon) => ((lon + 180) / 360) * 680 + 20;
+                      const projY = (lat) => ((90 - lat) / 180) * 320 + 20;
+
+                      const edge = servers[selectedEdgeKey] || servers.tokyo;
+                      const origin = servers.origin;
+
+                      const cX = projX(userGeo.lon);
+                      const cY = projY(userGeo.lat);
+
+                      const eX = projX(edge.lon);
+                      const eY = projY(edge.lat);
+
+                      const oX = projX(origin.lon);
+                      const oY = projY(origin.lat);
+
+                      // Quadratic Curves
+                      const midCE_X = (cX + eX) / 2;
+                      const midCE_Y = Math.min(cY, eY) - Math.abs(cX - eX) * 0.12 - 20;
+                      const pathCE = `M ${cX} ${cY} Q ${midCE_X} ${midCE_Y} ${eX} ${eY}`;
+
+                      const midEO_X = (eX + oX) / 2;
+                      const midEO_Y = Math.min(eY, oY) - Math.abs(eX - oX) * 0.12 - 20;
+                      const pathEO = `M ${eX} ${eY} Q ${midEO_X} ${midEO_Y} ${oX} ${oY}`;
+
+                      return (
+                        <g>
+                          {/* Links */}
+                          <path
+                            d={pathCE}
+                            fill="none"
+                            stroke="url(#link-client-edge)"
+                            strokeWidth="3"
+                            strokeDasharray="6 4"
+                            opacity="0.85"
+                          />
+                          <path
+                            d={pathEO}
+                            fill="none"
+                            stroke="url(#link-edge-origin)"
+                            strokeWidth="3"
+                            strokeDasharray="6 4"
+                            opacity="0.75"
+                          />
+
+                          {/* Live Animated Packets on Links */}
+                          {isTransferring && (transferStep === 1 || transferStep === 5) && (
+                            <circle r="7" fill="#10b981" filter="url(#cdn-glow)">
+                              <animateMotion
+                                path={transferStep === 1 ? pathCE : pathCE}
+                                keyPoints={transferStep === 1 ? "0;1" : "1;0"}
+                                keyTimes="0;1"
+                                dur="0.7s"
+                                repeatCount="indefinite"
+                              />
+                            </circle>
+                          )}
+
+                          {isTransferring && (transferStep === 3 || transferStep === 4) && (
+                            <circle r="7" fill="#f43f5e" filter="url(#cdn-glow)">
+                              <animateMotion
+                                path={transferStep === 3 ? pathEO : pathEO}
+                                keyPoints={transferStep === 3 ? "0;1" : "1;0"}
+                                keyTimes="0;1"
+                                dur="0.7s"
+                                repeatCount="indefinite"
+                              />
+                            </circle>
+                          )}
+
+                          {/* Link Distance Badges */}
+                          <g transform={`translate(${midCE_X}, ${midCE_Y + 14})`}>
+                            <rect x="-45" y="-10" width="90" height="20" rx="10" fill="#030712" stroke="#10b981" strokeWidth="1" opacity="0.9" />
+                            <text x="0" y="4" textAnchor="middle" fill="#10b981" fontSize="10" fontFamily="monospace" fontWeight="bold">
+                              {getHaversineDistance(userGeo.lat, userGeo.lon, edge.lat, edge.lon)} km
+                            </text>
+                          </g>
+
+                          <g transform={`translate(${midEO_X}, ${midEO_Y + 14})`}>
+                            <rect x="-45" y="-10" width="90" height="20" rx="10" fill="#030712" stroke="#06b6d4" strokeWidth="1" opacity="0.9" />
+                            <text x="0" y="4" textAnchor="middle" fill="#06b6d4" fontSize="10" fontFamily="monospace" fontWeight="bold">
+                              {getHaversineDistance(edge.lat, edge.lon, origin.lat, origin.lon)} km
+                            </text>
+                          </g>
+
+                          {/* 1. Client Node (Real GPS Coordinates) */}
+                          <g transform={`translate(${cX}, ${cY})`}>
+                            <circle r="18" fill="rgba(16, 185, 129, 0.2)" />
+                            <circle r="10" fill="#10b981" filter="url(#cdn-glow)" />
+                            <circle r="5" fill="#ffffff" />
+                            <text x="0" y="24" textAnchor="middle" fill="#10b981" fontSize="11" fontWeight="bold" fontFamily="sans-serif">
+                              CLIENT DEVICE
+                            </text>
+                            <text x="0" y="36" textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
+                              {userGeo.name}
+                            </text>
+                          </g>
+
+                          {/* 2. Edge Server Node (Chosen POP) */}
+                          <g transform={`translate(${eX}, ${eY})`}>
+                            <circle r="22" fill="rgba(6, 182, 212, 0.2)" />
+                            <circle r="12" fill="#06b6d4" filter="url(#cdn-glow)" />
+                            <circle r="6" fill="#ffffff" />
+                            <text x="0" y="26" textAnchor="middle" fill="#06b6d4" fontSize="11" fontWeight="bold" fontFamily="sans-serif">
+                              CDN EDGE POP
+                            </text>
+                            <text x="0" y="38" textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
+                              {edge.name}
+                            </text>
+                          </g>
+
+                          {/* 3. Origin Server Node (Room Creator) */}
+                          <g transform={`translate(${oX}, ${oY})`}>
+                            <circle r="24" fill="rgba(244, 63, 94, 0.2)" />
+                            <circle r="14" fill="#f43f5e" filter="url(#cdn-glow)" />
+                            <circle r="7" fill="#ffffff" />
+                            <text x="0" y="28" textAnchor="middle" fill="#f43f5e" fontSize="11" fontWeight="bold" fontFamily="sans-serif">
+                              ORIGIN SERVER (HOST)
+                            </text>
+                            <text x="0" y="40" textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
+                              {roomHostName}
+                            </text>
+                          </g>
+                        </g>
+                      );
+                    })()}
+                  </svg>
+                </div>
+              </div>
+
+              {/* 2. Large Main Output Data Stream HUD */}
+              <div className="large-output-hud-card">
+                <div className="hud-card-top">
+                  <div className="hud-badge">
+                    <Activity size={14} />
+                    <span>SYNCHRONIZED DATA STREAM HUD</span>
+                  </div>
+                  <span className="hud-topology-name">HTTP/3 ANYCAST EDGE</span>
+                </div>
+
+                <div className="hud-payload-banner">
+                  <span className="payload-tag">REQUESTED ASSET PAYLOAD</span>
+                  <h1 className="hud-payload-huge">"{selectedAsset}"</h1>
+                </div>
+
+                {/* Traversal Flow */}
+                <div className="hud-traversal-bar">
+                  <span className="traversal-bar-label">DELIVERY PIPELINE:</span>
+                  <div className="traversal-nodes-flow">
+                    <div className="hop-step-item">
+                      <div className={`hop-node-bubble ${transferStep >= 1 ? 'delivered' : ''}`} style={{ borderColor: '#10b981' }}>
+                        <span className="hop-letter">C</span>
+                      </div>
+                      <span className="hop-station-tag">Client Device</span>
+                      <ArrowRight size={16} className={`hop-arrow ${transferStep >= 1 ? 'active' : ''}`} />
+                    </div>
+
+                    <div className="hop-step-item">
+                      <div className={`hop-node-bubble ${transferStep >= 2 ? 'active-hop' : ''}`} style={{ borderColor: '#06b6d4' }}>
+                        <span className="hop-letter">E</span>
+                        {transferStep === 2 && <span className="hop-pulse-ring" />}
+                      </div>
+                      <span className="hop-station-tag">Edge POP ({servers[selectedEdgeKey]?.name.split(' ')[0]})</span>
+                      <ArrowRight size={16} className={`hop-arrow ${transferStep >= 3 ? 'active' : ''}`} />
+                    </div>
+
+                    <div className="hop-step-item">
+                      <div className={`hop-node-bubble ${transferStep >= 3 ? 'delivered' : ''}`} style={{ borderColor: '#f43f5e' }}>
+                        <span className="hop-letter">O</span>
+                      </div>
+                      <span className="hop-station-tag">Origin Host ({roomHostName.split(' ')[0]})</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Marquee */}
+                <div className={`hud-status-marquee ${isTransferring ? 'running' : lastTransferResult ? 'completed' : 'idle'}`}>
+                  <div className="marquee-dot" />
+                  <span>
+                    {isTransferring
+                      ? transferStep === 1
+                        ? `[HOP 1] Dispatching HTTP GET from Client Device to ${servers[selectedEdgeKey]?.name}...`
+                        : transferStep === 2
+                        ? `[CACHE EVAL] Edge POP inspecting local SSD cache...`
+                        : transferStep === 3
+                        ? `[HOP 2] Cache Miss! Edge routing request to Origin Server (${roomHostName})...`
+                        : transferStep === 4
+                        ? `[CACHE WARMING] Origin dispatching 4.2MB binary. Edge POP writing to L1 SSD cache...`
+                        : `[HOP 3] Streaming final payload down to Client Device...`
+                      : lastTransferResult
+                      ? `[DELIVERED] Asset "${lastTransferResult.asset}" successfully delivered in ${lastTransferResult.totalLatency}ms. Status: ${lastTransferResult.cacheStatus}. (0% Packet Loss)`
+                      : `[READY] Select an asset payload and click "Execute Data Transfer Stream" to observe live multi-hop routing.`}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. This Device's Local Perspective Card */}
+              <div className="local-device-perspective-card">
+                <div className="local-card-top">
+                  <div className="local-title-row">
+                    <Laptop size={16} className="device-icon" />
+                    <h3>Your Device Local Perspective</h3>
+                  </div>
+                  <span
+                    className="local-status-pill"
+                    style={{
+                      borderColor: myDeviceCdnRole === 'client' ? '#10b981' : myDeviceCdnRole === 'edge' ? '#06b6d4' : '#f43f5e',
+                      color: myDeviceCdnRole === 'client' ? '#10b981' : myDeviceCdnRole === 'edge' ? '#06b6d4' : '#f43f5e'
+                    }}
+                  >
+                    {myDeviceCdnRole === 'client' ? 'CLIENT CONSUMER' : myDeviceCdnRole === 'edge' ? 'EDGE CACHE POP' : 'PRIMARY ORIGIN SERVER'}
+                  </span>
+                </div>
+
+                <p className="local-device-desc">
+                  This card reflects your physical device's exact operational role in the CDN architecture right now:
+                </p>
+
+                <div
+                  className="local-action-banner"
+                  style={{
+                    borderLeftColor: myDeviceCdnRole === 'client' ? '#10b981' : myDeviceCdnRole === 'edge' ? '#06b6d4' : '#f43f5e'
+                  }}
+                >
+                  <span className="local-msg-highlight">
+                    {myDeviceCdnRole === 'client'
+                      ? `THIS DEVICE IS THE CLIENT CONSUMER: Located at [${userGeo.lat}°, ${userGeo.lon}°]. Consuming media via ${servers[selectedEdgeKey]?.name}.`
+                      : myDeviceCdnRole === 'edge'
+                      ? `THIS DEVICE IS THE CDN EDGE CACHE POP: Intercepting client requests, evaluating SSD cache index, and shielding Central Origin.`
+                      : `THIS DEVICE IS THE PRIMARY ORIGIN SERVER: Room Creator host machine storing authoritative master objects and database records.`}
+                  </span>
+                </div>
+
+                <div className="local-node-specs-grid">
+                  <div className="spec-pill">
+                    <span className="sp-title">Assigned Device Role</span>
+                    <span className="sp-val">{myDeviceCdnRole.toUpperCase()}</span>
+                  </div>
+                  <div className="spec-pill">
+                    <span className="sp-title">Coordinates</span>
+                    <span className="sp-val font-mono">{userGeo.lat}°, {userGeo.lon}°</span>
+                  </div>
+                  <div className="spec-pill">
+                    <span className="sp-title">Target Edge POP</span>
+                    <span className="sp-val">{servers[selectedEdgeKey]?.name.split(' ')[0]}</span>
+                  </div>
+                  <div className="spec-pill">
+                    <span className="sp-title">Network Duplex</span>
+                    <span className="sp-val text-emerald-400 font-bold">FULL DUPLEX</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Synchronized Telemetry Logbook */}
+              <div className="chaos-card-full">
+                <div className="chaos-card-header">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={18} className="text-emerald-400" />
+                    <h3 className="chaos-card-title">Real-Time Data Transfer & Routing Telemetry Stream</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="telemetry-live-dot" />
+                    <span className="text-xs text-slate-400 font-mono">STREAM ACTIVE</span>
+                    <button
+                      type="button"
+                      className="chaos-clear-logs-btn"
+                      onClick={() => setCdnPracticalLogs([])}
+                      title="Clear telemetry logs"
+                    >
+                      Clear Stream
+                    </button>
+                  </div>
+                </div>
+
+                <div className="chaos-terminal-full">
+                  {cdnPracticalLogs.map((log, i) => (
+                    <div key={log.id || i} className={`terminal-line-v2 ${i === 0 ? 'active' : ''}`}>
+                      <span className="text-slate-500 font-mono mr-2">[{log.time}]</span>
+                      <span className={log.type === 'success' ? 'text-emerald-400' : log.type === 'transfer' ? 'text-cyan-300' : log.type === 'warning' ? 'text-amber-400' : 'text-slate-300'}>
+                        {log.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
           </div>
         )}
       </main>
