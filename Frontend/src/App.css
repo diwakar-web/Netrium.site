@@ -1706,18 +1706,25 @@
 }
 
 @media (max-width: 900px) {
-  .hero-upper-row {
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 24px;
+  /* Mobile Phone Declutter: Hide Upper Row (Trusted By, Why Netrium, Socials) and Bottom Comments */
+  .hero-upper-row,
+  .upper-left-col,
+  .upper-right-col,
+  .active-nodes-container,
+  .active-nodes-ghost-space,
+  .why-netrium-wrapper,
+  .why-netrium-card,
+  .why-netrium-ghost-space,
+  .social-column,
+  .bottom-right-col,
+  .reviews-container,
+  .reviews-ghost-space {
+    display: none !important;
   }
 
-  .why-netrium-wrapper {
-    width: 100%;
-  }
-
-  .why-netrium-card {
-    width: 100%;
+  .hero-bottom-row {
+    margin-top: 14px;
+    margin-bottom: 8px;
   }
 
   .title-row {
@@ -1774,20 +1781,6 @@
   .facility-pill {
     padding: 6px 12px;
     font-size: 11px;
-  }
-
-  .why-netrium-wrapper,
-  .why-netrium-card {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .reviews-container {
-    align-items: stretch !important;
-  }
-
-  .reviews-cta-row {
-    justify-content: flex-start !important;
   }
 
   .processes-status-row,
